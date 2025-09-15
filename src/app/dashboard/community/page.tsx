@@ -6,10 +6,10 @@ import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
 
 const discussions = [
-  { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: 'https://picsum.photos/seed/ramesh/40', replies: 5, tag: 'Wheat', time: '2 hours ago' },
-  { id: 2, title: 'Question about monsoon soil preparation', author: 'Sita D.', avatar: 'https://picsum.photos/seed/sita/40', replies: 12, tag: 'Soil', time: '1 day ago' },
-  { id: 3, title: 'Sharing my success with organic farming in Punjab', author: 'Balwinder S.', avatar: 'https://picsum.photos/seed/balwinder/40', replies: 28, tag: 'Organic', time: '3 days ago' },
-  { id: 4, title: 'Low yield on my cotton crop, any advice?', author: 'Priya M.', avatar: 'https://picsum.photos/seed/priya/40', replies: 8, tag: 'Cotton', time: '5 days ago' },
+  { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: 'https://picsum.photos/seed/user1/40', replies: 5, tag: 'Wheat', time: '2 hours ago' },
+  { id: 2, title: 'Question about monsoon soil preparation', author: 'Sita D.', avatar: 'https://picsum.photos/seed/user2/40', replies: 12, tag: 'Soil', time: '1 day ago' },
+  { id: 3, title: 'Sharing my success with organic farming in Punjab', author: 'Balwinder S.', avatar: 'https://picsum.photos/seed/user3/40', replies: 28, tag: 'Organic', time: '3 days ago' },
+  { id: 4, title: 'Low yield on my cotton crop, any advice?', author: 'Priya M.', avatar: 'https://picsum.photos/seed/user4/40', replies: 8, tag: 'Cotton', time: '5 days ago' },
 ];
 
 export default function CommunityPage() {
