@@ -2,15 +2,19 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, MessageSquare, ClipboardList, ArrowRight, Sun, Wind, Droplets, Newspaper } from "lucide-react";
+import { Stethoscope, MessageSquare, ClipboardList, ArrowRight, Sun, Wind, Droplets, Newspaper, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { useLocalization } from "@/context/localization-context";
+import { useEffect, useState } from "react";
+import { getWeather, GetWeatherOutput } from "@/ai/flows/get-weather-flow";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { translate } = useLocalization();
+  const [weather, setWeather] = useState<GetWeatherOutput | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
   
   const features = [
     {
@@ -48,14 +52,29 @@ export default function DashboardPage() {
       { id: 3, title: "Market Watch: Soybean prices see a 5% increase.", source: "Mandi News", time: "1d ago" },
   ]
   
-  // Mock weather data. In a real app, this would be fetched from an API.
-  const weather = {
-    temperature: 32,
-    condition: "Sunny",
-    wind: 15,
-    humidity: 45,
-    location: user?.location || "your area"
-  }
+  useEffect(() => {
+    async function fetchWeather() {
+      if (user?.location) {
+        setWeatherLoading(true);
+        try {
+          const weatherData = await getWeather({ location: user.location });
+          setWeather(weatherData);
+        } catch (error) {
+          console.error("Failed to fetch weather:", error);
+          // Set default weather on error
+          setWeather({ temperature: 32, condition: "Sunny", wind: 15, humidity: 45 });
+        } finally {
+          setWeatherLoading(false);
+        }
+      } else {
+        // Set default weather if no location
+        setWeather({ temperature: 32, condition: "Sunny", wind: 15, humidity: 45 });
+        setWeatherLoading(false);
+      }
+    }
+    fetchWeather();
+  }, [user?.location]);
+
 
   return (
     <div className="space-y-8">
@@ -69,31 +88,41 @@ export default function DashboardPage() {
         <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             <Card className="lg:col-span-3">
                 <CardHeader>
-                    <CardTitle className="font-headline">{translate('weatherIn', 'Weather in {location}').replace('{location}', weather.location)}</CardTitle>
+                    <CardTitle className="font-headline">{translate('weatherIn', 'Weather in {location}').replace('{location}', user?.location || 'your area')}</CardTitle>
                     <CardDescription>{translate('weatherConditions', 'Current conditions and forecast.')}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row items-center justify-around gap-6 text-center">
-                    <div className="flex items-center gap-4">
-                        <Sun className="h-16 w-16 text-yellow-500" />
-                        <div>
-                            <p className="text-5xl font-bold">{weather.temperature}°C</p>
-                            <p className="text-muted-foreground">{weather.condition}</p>
+                    {weatherLoading ? (
+                      <div className="flex items-center justify-center w-full h-24">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : weather ? (
+                      <>
+                        <div className="flex items-center gap-4">
+                            <Sun className="h-16 w-16 text-yellow-500" />
+                            <div>
+                                <p className="text-5xl font-bold">{weather.temperature}°C</p>
+                                <p className="text-muted-foreground">{weather.condition}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-muted-foreground">
-                        <Wind className="h-8 w-8 text-primary/70" />
-                        <div>
-                             <p className="text-lg font-bold">{weather.wind} km/h</p>
-                             <p className="text-sm">{translate('wind', 'Wind')}</p>
+                        <div className="flex items-center gap-4 text-muted-foreground">
+                            <Wind className="h-8 w-8 text-primary/70" />
+                            <div>
+                                <p className="text-lg font-bold">{weather.wind} km/h</p>
+                                <p className="text-sm">{translate('wind', 'Wind')}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-muted-foreground">
-                        <Droplets className="h-8 w-8 text-primary/70" />
-                         <div>
-                             <p className="text-lg font-bold">{weather.humidity}%</p>
-                             <p className="text-sm">{translate('humidity', 'Humidity')}</p>
+                        <div className="flex items-center gap-4 text-muted-foreground">
+                            <Droplets className="h-8 w-8 text-primary/70" />
+                            <div>
+                                <p className="text-lg font-bold">{weather.humidity}%</p>
+                                <p className="text-sm">{translate('humidity', 'Humidity')}</p>
+                            </div>
                         </div>
-                    </div>
+                      </>
+                    ) : (
+                      <p>{translate('weatherNotAvailable', 'Weather data not available.')}</p>
+                    )}
                 </CardContent>
             </Card>
 

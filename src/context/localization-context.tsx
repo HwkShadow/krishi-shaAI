@@ -66,6 +66,7 @@ const translations: Record<Language, Record<string, string>> = {
     manageFarmLog: "Manage Your Farm Log",
     manageFarmLogDescription: "Keep track of all your farming activities in one place.",
     viewLog: "View Log",
+    weatherNotAvailable: "Weather data not available.",
     
     // Diagnose Page
     plantDiseaseDiagnosis: "Plant Disease Diagnosis",
@@ -171,6 +172,7 @@ const translations: Record<Language, Record<string, string>> = {
     manageFarmLog: "अपना फार्म लॉग प्रबंधित करें",
     manageFarmLogDescription: "अपनी सभी खेती की गतिविधियों का एक ही स्थान पर हिसाब रखें।",
     viewLog: "लॉग देखें",
+    weatherNotAvailable: "मौसम डेटा उपलब्ध नहीं है।",
 
     // Diagnose Page
     plantDiseaseDiagnosis: "पौध रोग निदान",
@@ -255,7 +257,7 @@ const translations: Record<Language, Record<string, string>> = {
     login: "ലോഗിൻ ചെയ്യുക",
     signup: "സൈൻ അപ്പ് ചെയ്യുക",
     dontHaveAccount: "അക്കൗണ്ട് ഇല്ലേ?",
-    alreadyHaveAccount: "이미 അക്കൗണ്ട് ഉണ്ടോ?",
+    alreadyHaveAccount: "ഇതിനകം അക്കൗണ്ട് ഉണ്ടോ?",
 
     // Dashboard Page
     welcomeMessage: "സ്വാഗതം, {name}!",
@@ -276,6 +278,7 @@ const translations: Record<Language, Record<string, string>> = {
     manageFarmLog: "നിങ്ങളുടെ ഫാം ലോഗ് നിയന്ത്രിക്കുക",
     manageFarmLogDescription: "നിങ്ങളുടെ എല്ലാ കാർഷിക പ്രവർത്തനങ്ങളും ഒരിടത്ത് സൂക്ഷിക്കുക.",
     viewLog: "ലോഗ് കാണുക",
+    weatherNotAvailable: "കാലാവസ്ഥാ ഡാറ്റ ലഭ്യമല്ല.",
     
     // Diagnose Page
     plantDiseaseDiagnosis: "സസ്യരോഗ നിർണ്ണയം",
