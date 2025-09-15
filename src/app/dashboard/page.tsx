@@ -108,12 +108,12 @@ export default function DashboardPage() {
           setWeather(weatherData);
         } catch (error) {
           console.error("Failed to fetch weather:", error);
-          setWeather({ temperature: 28, condition: "Partly Cloudy", wind: 12, humidity: 65 });
+          setWeather(null);
         } finally {
           setWeatherLoading(false);
         }
       } else {
-        setWeather({ temperature: 28, condition: "Partly Cloudy", wind: 12, humidity: 65 });
+        setWeather(null);
         setWeatherLoading(false);
       }
     }
