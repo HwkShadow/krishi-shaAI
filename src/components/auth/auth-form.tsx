@@ -18,12 +18,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import Image from 'next/image';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  location: z.string().optional(),
 });
 
 type AuthFormProps = {
@@ -39,6 +40,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     defaultValues: {
       email: '',
       password: '',
+      location: '',
     },
   });
 
@@ -48,7 +50,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     
     // Mock API call
     setTimeout(() => {
-      login();
+      login(values.location);
       setIsLoading(false);
     }, 1000);
   }
@@ -126,6 +128,24 @@ export function AuthForm({ mode }: AuthFormProps) {
                     </FormItem>
                   )}
                 />
+                {mode === 'signup' && (
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input placeholder="e.g., Punjab, India" {...field} className="pl-10" />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {mode === 'login' ? 'Log In' : 'Sign Up'}
