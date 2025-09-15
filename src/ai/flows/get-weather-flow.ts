@@ -35,36 +35,53 @@ const getWeatherFlow = ai.defineFlow(
     outputSchema: GetWeatherOutputSchema,
   },
   async (input) => {
-    // In a real app, you would call a weather API here.
-    // For this example, we'll return mock data that's slightly more realistic.
-    const mockWeatherData: Record<string, Omit<GetWeatherOutput, 'condition'>> = {
-        "punjab, india": { temperature: 35, wind: 12, humidity: 40 },
-        "kerala, india": { temperature: 28, wind: 20, humidity: 85 },
-        "mumbai, india": { temperature: 31, wind: 18, humidity: 78 },
-        "default": { temperature: 32, wind: 15, humidity: 45 }
-    };
-    
-    const locationKey = input.location.toLowerCase();
-    const baseWeather = mockWeatherData[locationKey] || mockWeatherData["default"];
+    const apiKey = process.env.OPENWEATHER_API_KEY;
 
-    const currentHour = new Date().getHours();
-    const isNight = currentHour < 6 || currentHour >= 18;
-
-    let condition = "Sunny";
-    if (locationKey.includes("kerala")) {
-      condition = isNight ? "Cloudy Night" : "Cloudy with chance of rain";
-    } else if (locationKey.includes("mumbai")) {
-      condition = isNight ? "Partly Cloudy" : "Humid and Overcast";
-    } else {
-      condition = isNight ? "Clear Night" : "Sunny";
+    if (!apiKey) {
+      throw new Error('OpenWeather API key is not configured.');
     }
     
-    const finalWeather: GetWeatherOutput = {
-      ...baseWeather,
-      condition,
-      temperature: isNight ? baseWeather.temperature - 5 : baseWeather.temperature,
-    };
+    // 1. Geocode location to get coordinates
+    const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(input.location)}&limit=1&appid=${apiKey}`;
     
-    return finalWeather;
+    let lat: number, lon: number;
+
+    try {
+      const geoResponse = await fetch(geoUrl);
+      if (!geoResponse.ok) {
+        throw new Error(`Failed to geocode location: ${geoResponse.statusText}`);
+      }
+      const geoData = await geoResponse.json();
+      if (!geoData || geoData.length === 0) {
+        throw new Error(`Could not find coordinates for location: ${input.location}`);
+      }
+      lat = geoData[0].lat;
+      lon = geoData[0].lon;
+    } catch (e: any) {
+        console.error('Geocoding API error:', e.message);
+        throw new Error('Failed to retrieve location coordinates. Please check the location name.');
+    }
+
+    // 2. Fetch weather using coordinates
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+    
+    try {
+        const weatherResponse = await fetch(weatherUrl);
+        if (!weatherResponse.ok) {
+            throw new Error(`Failed to fetch weather data: ${weatherResponse.statusText}`);
+        }
+        const weatherData = await weatherResponse.json();
+        
+        // 3. Map API response to our output schema
+        return {
+            temperature: Math.round(weatherData.main.temp),
+            condition: weatherData.weather[0]?.main || 'N/A',
+            wind: Math.round(weatherData.wind.speed * 3.6), // m/s to km/h
+            humidity: weatherData.main.humidity,
+        };
+    } catch (e: any) {
+        console.error('Weather API error:', e.message);
+        throw new Error('Failed to retrieve weather data.');
+    }
   }
 );
