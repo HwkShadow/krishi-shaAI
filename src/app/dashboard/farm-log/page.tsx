@@ -17,8 +17,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ClipboardList, PlusCircle, Lightbulb, Loader2 } from 'lucide-react';
 import { useLocalization } from '@/context/localization-context';
 import { getFarmLogSuggestion, FarmLogSuggestionOutput } from '@/ai/flows/farm-log-suggestion-flow';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useLogs } from '@/context/log-context';
 
 const logSchema = z.object({
   activity: z.string().min(1, 'Activity is required'),
@@ -31,18 +32,14 @@ type LogEntry = z.infer<typeof logSchema> & { id: string };
 
 const activityOptions = ['Sowing', 'Pesticide', 'Fertilizing', 'Watering', 'Harvesting', 'Scouting'];
 
-const initialLogs: LogEntry[] = [
-    { id: '1', activity: 'Sowing', crop: 'Wheat', date: new Date(2023, 10, 15), notes: 'Sowed 10 acres of wheat.' },
-    { id: '2', activity: 'Fertilizing', crop: 'Wheat', date: new Date(2023, 11, 20), notes: 'Applied urea fertilizer.' },
-    { id: '3', activity: 'Harvesting', crop: 'Rice', date: new Date(2023, 9, 30), notes: 'Harvested 5 tons of paddy.' },
-];
 
 export default function FarmLogPage() {
-  const [logs, setLogs] = useState<LogEntry[]>(initialLogs);
+  const { logs, addLog } = useLogs();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const { translate } = useLocalization();
   const [suggestion, setSuggestion] = useState<FarmLogSuggestionOutput | null>(null);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof logSchema>>({
@@ -52,11 +49,12 @@ export default function FarmLogPage() {
 
   async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
-    setLogs([newLog, ...logs]);
+    addLog(newLog);
     form.reset({ crop: '', notes: '', date: new Date() });
     setIsFormVisible(false);
 
     setIsSuggestionLoading(true);
+    setShowSuggestionModal(true);
     try {
       const suggestionResult = await getFarmLogSuggestion({
         ...values,
@@ -70,6 +68,7 @@ export default function FarmLogPage() {
         title: 'Error',
         description: 'Failed to get a suggestion. Please try again later.',
       });
+      setShowSuggestionModal(false); // Close modal on error
     } finally {
         setIsSuggestionLoading(false);
     }
@@ -77,7 +76,7 @@ export default function FarmLogPage() {
 
   return (
     <div className="space-y-6">
-        <AlertDialog open={!!suggestion} onOpenChange={() => setSuggestion(null)}>
+        <AlertDialog open={showSuggestionModal} onOpenChange={setShowSuggestionModal}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2">
@@ -91,12 +90,12 @@ export default function FarmLogPage() {
                                 <span>Generating suggestion...</span>
                             </div>
                         ) : (
-                            suggestion?.suggestion
+                            suggestion?.suggestion || "No suggestion available."
                         )}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setSuggestion(null)}>Close</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => setShowSuggestionModal(false)}>Close</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -173,8 +172,7 @@ export default function FarmLogPage() {
                     
                     <div className="flex justify-end gap-2 pt-4">
                          <Button type="button" variant="outline" onClick={() => { setIsFormVisible(false); form.reset(); }}>{translate('cancel', 'Cancel')}</Button>
-                         <Button type="submit" disabled={isSuggestionLoading}>
-                            {isSuggestionLoading && <Loader2 className="animate-spin mr-2"/>}
+                         <Button type="submit">
                             Save Log
                         </Button>
                     </div>

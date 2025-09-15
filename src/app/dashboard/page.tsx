@@ -11,6 +11,9 @@ import { getWeather, GetWeatherOutput } from "@/ai/flows/get-weather-flow";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useLogs } from "@/context/log-context";
+import { isSameDay } from "date-fns";
+import { DayPicker } from "react-day-picker";
 
 const initialDiscussions = [
   { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: 'https://picsum.photos/seed/user1/40', replies: 5, likes: 10, tag: 'Wheat', time: '2 hours ago' },
@@ -24,6 +27,36 @@ export default function DashboardPage() {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const { logs } = useLogs();
+
+  const loggedDays = logs.map(log => log.date);
+
+  const dayPickerModifiers = {
+    logged: loggedDays,
+  };
+
+  const dayPickerModifierStyles = {
+    logged: {
+      position: 'relative',
+      backgroundColor: 'hsl(var(--primary) / 0.1)',
+    }
+  };
+  
+  const DayPickerFooter = () => {
+    const selectedLogs = logs.filter(log => date && isSameDay(log.date, date));
+
+    if (date && selectedLogs.length > 0) {
+        return (
+            <div className="mt-2 p-2 bg-muted/50 rounded-md text-sm">
+                <p className="font-bold">Activities on this day:</p>
+                <ul className="list-disc list-inside">
+                    {selectedLogs.map(log => <li key={log.id}>{log.activity} on {log.crop}</li>)}
+                </ul>
+            </div>
+        )
+    }
+    return <p className="text-sm mt-2 text-muted-foreground">Select a day to see activities.</p>;
+  }
 
   useEffect(() => {
     const currentHour = new Date().getHours();
@@ -62,7 +95,7 @@ export default function DashboardPage() {
 
   const quickOverview = [
       { id: 1, title: "AI Queries", value: "0", icon: MessageSquare },
-      { id: 2, title: "Farm Activities", value: "1", icon: ClipboardList },
+      { id: 2, title: "Farm Activities", value: logs.length, icon: ClipboardList },
       { id: 3, title: "New Alerts", value: "3", icon: Bell },
   ]
   
@@ -173,6 +206,20 @@ export default function DashboardPage() {
                         selected={date}
                         onSelect={setDate}
                         className="rounded-md border"
+                        modifiers={dayPickerModifiers}
+                        modifiersStyles={dayPickerModifierStyles}
+                        components={{
+                            DayContent: (props) => {
+                                const isLogged = loggedDays.some(loggedDay => isSameDay(loggedDay, props.date));
+                                return (
+                                    <div className="relative w-full h-full flex items-center justify-center">
+                                        <span>{props.date.getDate()}</span>
+                                        {isLogged && <div className="absolute bottom-1 w-1 h-1 bg-primary rounded-full"></div>}
+                                    </div>
+                                );
+                            }
+                        }}
+                        footer={<DayPickerFooter />}
                     />
                 </CardContent>
             </Card>

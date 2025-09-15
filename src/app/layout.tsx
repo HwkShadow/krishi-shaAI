@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { LocalizationProvider } from '@/context/localization-context';
+import { LogProvider } from '@/context/log-context';
 
 export const metadata: Metadata = {
   title: 'Krishi SahAI',
@@ -24,8 +25,10 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <AuthProvider>
           <LocalizationProvider>
-            {children}
-            <Toaster />
+            <LogProvider>
+              {children}
+              <Toaster />
+            </LogProvider>
           </LocalizationProvider>
         </AuthProvider>
       </body>
