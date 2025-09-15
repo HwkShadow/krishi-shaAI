@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/context/localization-context';
 
 type InputMode = 'image' | 'text' | 'audio';
 
@@ -27,6 +28,7 @@ export default function DiagnosePage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
+  const { translate } = useLocalization();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -34,8 +36,8 @@ export default function DiagnosePage() {
         if (!selectedFile.type.startsWith('image/')) {
             toast({
                 variant: 'destructive',
-                title: 'Invalid file type',
-                description: 'Please upload an image file.',
+                title: translate('invalidFileType', 'Invalid file type'),
+                description: translate('uploadAnImage', 'Please upload an image file.'),
             });
             return;
         }
@@ -63,8 +65,8 @@ export default function DiagnosePage() {
     if (!file && !textInput) {
       toast({
         variant: 'destructive',
-        title: 'No input provided',
-        description: 'Please upload an image or describe the symptoms.',
+        title: translate('noInputProvided', 'No input provided'),
+        description: translate('pleaseProvideInput', 'Please upload an image or describe the symptoms.'),
       });
       return;
     }
@@ -89,8 +91,8 @@ export default function DiagnosePage() {
       setError('An error occurred while diagnosing the plant. Please try again.');
       toast({
         variant: 'destructive',
-        title: 'Diagnosis Failed',
-        description: 'Could not get a diagnosis. Please check your connection and try again.',
+        title: translate('diagnosisFailed', 'Diagnosis Failed'),
+        description: translate('diagnosisError', 'Could not get a diagnosis. Please check your connection and try again.'),
       });
     } finally {
       setIsLoading(false);
@@ -120,8 +122,8 @@ export default function DiagnosePage() {
     } catch (err) {
       toast({
         variant: 'destructive',
-        title: 'Microphone access denied',
-        description: 'Please allow microphone access to record audio.',
+        title: translate('microphoneAccessDenied', 'Microphone access denied'),
+        description: translate('allowMicrophone', 'Please allow microphone access to record audio.'),
       });
     }
   };
@@ -152,17 +154,17 @@ export default function DiagnosePage() {
       <Card className="w-full">
         <CardHeader className="text-center">
           <Leaf className="mx-auto h-12 w-12 text-primary"/>
-          <CardTitle className="text-3xl font-headline">Plant Disease Diagnosis</CardTitle>
+          <CardTitle className="text-3xl font-headline">{translate('plantDiseaseDiagnosis', 'Plant Disease Diagnosis')}</CardTitle>
           <CardDescription className="text-lg">
-            Use an image, text, or your voice to get an AI-powered diagnosis.
+            {translate('diagnosisSubtitle', 'Use an image, text, or your voice to get an AI-powered diagnosis.')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <Tabs value={inputMode} onValueChange={(value) => setInputMode(value as InputMode)} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="image"><UploadCloud className="mr-2 h-4 w-4"/>Image</TabsTrigger>
-                    <TabsTrigger value="text"><FileText className="mr-2 h-4 w-4"/>Text</TabsTrigger>
-                    <TabsTrigger value="audio"><Mic className="mr-2 h-4 w-4"/>Audio</TabsTrigger>
+                    <TabsTrigger value="image"><UploadCloud className="mr-2 h-4 w-4"/>{translate('image', 'Image')}</TabsTrigger>
+                    <TabsTrigger value="text"><FileText className="mr-2 h-4 w-4"/>{translate('text', 'Text')}</TabsTrigger>
+                    <TabsTrigger value="audio"><Mic className="mr-2 h-4 w-4"/>{translate('audio', 'Audio')}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="image">
                     <div className="relative flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed border-border p-8 mt-4">
@@ -173,7 +175,7 @@ export default function DiagnosePage() {
                         ) : (
                             <div className="text-center">
                                 <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <p className="mt-2 text-muted-foreground">Drag & drop an image here, or click to select</p>
+                                <p className="mt-2 text-muted-foreground">{translate('dragAndDrop', 'Drag & drop an image here, or click to select')}</p>
                             </div>
                         )}
                         <input
@@ -183,11 +185,11 @@ export default function DiagnosePage() {
                         className="absolute h-full w-full cursor-pointer opacity-0"
                         />
                     </div>
-                    {file && <p className="text-center text-sm text-muted-foreground mt-2">Selected file: {file.name}</p>}
+                    {file && <p className="text-center text-sm text-muted-foreground mt-2">{translate('selectedFile', 'Selected file: {fileName}').replace('{fileName}', file.name)}</p>}
                 </TabsContent>
                 <TabsContent value="text">
                     <Textarea
-                        placeholder="e.g., 'The leaves are yellow with brown spots and the stems are weak...'"
+                        placeholder={translate('symptomsPlaceholder', "e.g., 'The leaves are yellow with brown spots and the stems are weak...'")}
                         className="mt-4 min-h-[200px] text-base"
                         value={textInput}
                         onChange={(e) => {
@@ -201,7 +203,7 @@ export default function DiagnosePage() {
                       <Button onClick={handleAudioButtonClick} size="lg" variant={isRecording ? 'destructive' : 'outline'} className="rounded-full h-24 w-24">
                         {isRecording ? <Square className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
                       </Button>
-                      <p className="text-muted-foreground">{isRecording ? 'Recording... Click to stop.' : 'Click to record symptoms'}</p>
+                      <p className="text-muted-foreground">{isRecording ? translate('recording', 'Recording... Click to stop.') : translate('recordSymptoms', 'Click to record symptoms')}</p>
                       {textInput && inputMode === 'audio' && (
                         <p className="text-sm text-center bg-muted p-2 rounded-md">{textInput}</p>
                       )}
@@ -213,36 +215,36 @@ export default function DiagnosePage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Diagnosing...
+                {translate('diagnosing', 'Diagnosing...')}
               </>
             ) : (
-              'Diagnose Plant'
+              translate('diagnosePlant', 'Diagnose Plant')
             )}
           </Button>
 
           {error && (
              <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>{translate('error', 'Error')}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {result && (
             <div className="space-y-6 pt-6 border-t">
-                <h2 className="text-2xl font-headline text-center">Diagnosis Result</h2>
+                <h2 className="text-2xl font-headline text-center">{translate('diagnosisResult', 'Diagnosis Result')}</h2>
                 <div className="grid md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between font-headline">
-                                <span>Diagnosis</span>
+                                <span>{translate('diagnosis', 'Diagnosis')}</span>
                                 <PillIcon>{result.diagnosis}</PillIcon>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                            <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="font-medium flex items-center gap-2"><BadgePercent/> Confidence</span>
+                                    <span className="font-medium flex items-center gap-2"><BadgePercent/> {translate('confidence', 'Confidence')}</span>
                                     <span>{(result.confidenceScore * 100).toFixed(0)}%</span>
                                 </div>
                                 <Progress value={result.confidenceScore * 100} />
@@ -252,7 +254,7 @@ export default function DiagnosePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">
-                                Suggested Treatment
+                                {translate('suggestedTreatment', 'Suggested Treatment')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>

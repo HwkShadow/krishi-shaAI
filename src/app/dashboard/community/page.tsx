@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
+import { useLocalization } from "@/context/localization-context";
 
 const initialDiscussions = [
   { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: 'https://picsum.photos/seed/user1/40', replies: 5, likes: 10, tag: 'Wheat', time: '2 hours ago', comments: [{ id: 1, author: 'Sita D.', text: 'I found that propiconazole works well.', avatar: 'https://picsum.photos/seed/user2/40'}] },
@@ -20,6 +21,7 @@ export default function CommunityPage() {
   const { user } = useAuth();
   const [discussions, setDiscussions] = useState(initialDiscussions);
   const [commentInputs, setCommentInputs] = useState<{[key: number]: string}>({});
+  const { translate } = useLocalization();
 
   const handleLike = (id: number) => {
     setDiscussions(discussions.map(d => d.id === id ? { ...d, likes: d.likes + 1 } : d));
@@ -55,11 +57,11 @@ export default function CommunityPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline flex items-center gap-3"><Users className="text-primary" />Community Forum</h1>
-          <p className="text-muted-foreground">Connect with fellow farmers, share knowledge, and grow together.</p>
+          <h1 className="text-3xl font-headline flex items-center gap-3"><Users className="text-primary" />{translate('communityForum', 'Community Forum')}</h1>
+          <p className="text-muted-foreground">{translate('communitySubtitle', 'Connect with fellow farmers, share knowledge, and grow together.')}</p>
         </div>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Start Discussion
+          <PlusCircle className="mr-2 h-4 w-4" /> {translate('startDiscussion', 'Start Discussion')}
         </Button>
       </div>
 
@@ -113,12 +115,12 @@ export default function CommunityPage() {
                             <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <Input 
-                            placeholder="Add a comment..." 
+                            placeholder={translate('addComment', 'Add a comment...')}
                             value={commentInputs[d.id] || ''}
                             onChange={(e) => handleCommentChange(d.id, e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddComment(d.id)}
                         />
-                        <Button size="sm" onClick={() => handleAddComment(d.id)}>Comment</Button>
+                        <Button size="sm" onClick={() => handleAddComment(d.id)}>{translate('comment', 'Comment')}</Button>
                     </div>
                 </div>
             </CardContent>

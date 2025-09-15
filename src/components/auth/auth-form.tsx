@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/context/auth-context';
 import { Loader2, MapPin } from 'lucide-react';
 import Image from 'next/image';
+import { useLocalization } from '@/context/localization-context';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -34,6 +35,7 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps) {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const { translate } = useLocalization();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,10 +94,10 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <h1 className="text-3xl font-headline text-primary">Krishi SahAI</h1>
             </div>
             <CardTitle className="text-2xl font-headline">
-              {mode === 'login' ? 'Welcome Back' : 'Create an Account'}
+              {mode === 'login' ? translate('welcomeBack', 'Welcome Back') : translate('createAccount', 'Create an Account')}
             </CardTitle>
             <CardDescription>
-              {mode === 'login' ? 'Sign in to access your dashboard' : 'Your AI companion for farming awaits'}
+              {mode === 'login' ? translate('loginToDashboard', 'Sign in to access your dashboard') : translate('aiCompanionAwaits', 'Your AI companion for farming awaits')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -106,7 +108,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{translate('email', 'Email')}</FormLabel>
                       <FormControl>
                         <Input placeholder="name@example.com" {...field} />
                       </FormControl>
@@ -119,7 +121,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{translate('password', 'Password')}</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="********" {...field} />
                       </FormControl>
@@ -133,7 +135,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Location</FormLabel>
+                        <FormLabel>{translate('location', 'Location')}</FormLabel>
                         <FormControl>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -147,23 +149,23 @@ export function AuthForm({ mode }: AuthFormProps) {
                 )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {mode === 'login' ? 'Log In' : 'Sign Up'}
+                  {mode === 'login' ? translate('login', 'Log In') : translate('signup', 'Sign Up')}
                 </Button>
               </form>
             </Form>
             <div className="mt-4 text-center text-sm">
               {mode === 'login' ? (
                 <>
-                  Don&apos;t have an account?{' '}
+                  {translate('dontHaveAccount', "Don't have an account?")}{' '}
                   <Link href="/signup" className="underline text-primary">
-                    Sign up
+                    {translate('signup', 'Sign up')}
                   </Link>
                 </>
               ) : (
                 <>
-                  Already have an account?{' '}
+                  {translate('alreadyHaveAccount', 'Already have an account?')}{' '}
                   <Link href="/" className="underline text-primary">
-                    Log in
+                    {translate('login', 'Log in')}
                   </Link>
                 </>
               )}

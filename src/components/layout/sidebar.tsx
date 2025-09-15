@@ -23,20 +23,22 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/diagnose', label: 'Diagnose', icon: Stethoscope },
-  { href: '/dashboard/query', label: 'Query', icon: MessageSquare },
-  { href: '/dashboard/farm-log', label: 'Farm Log', icon: ClipboardList },
-  { href: '/dashboard/community', label: 'Community', icon: Users },
-  { href: '/dashboard/alerts', label: 'Alerts', icon: Bell },
-];
+import { useLocalization } from '@/context/localization-context';
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { toast } = useToast();
+  const { translate } = useLocalization();
+
+  const navItems = [
+    { href: '/dashboard', label: translate('dashboard', 'Dashboard'), icon: LayoutDashboard },
+    { href: '/dashboard/diagnose', label: translate('diagnose', 'Diagnose'), icon: Stethoscope },
+    { href: '/dashboard/query', label: translate('query', 'Query'), icon: MessageSquare },
+    { href: '/dashboard/farm-log', label: translate('farmLog', 'Farm Log'), icon: ClipboardList },
+    { href: '/dashboard/community', label: translate('community', 'Community'), icon: Users },
+    { href: '/dashboard/alerts', label: translate('alerts', 'Alerts'), icon: Bell },
+  ];
   
   const LeafIcon = () => (
     <svg
@@ -85,15 +87,15 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings" onClick={() => toast({ title: "Settings page coming soon!"})}>
+                <SidebarMenuButton tooltip={translate('settings', 'Settings')} onClick={() => toast({ title: translate('settingsPageComingSoon', 'Settings page coming soon!')})}>
                     <Settings/>
-                    <span>Settings</span>
+                    <span>{translate('settings', 'Settings')}</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
                 <Button variant="ghost" className="w-full justify-start gap-2 p-2" onClick={logout}>
                     <LogOut className="h-4 w-4"/>
-                    <span className="group-data-[collapsible=icon]:hidden">Log out</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{translate('logout', 'Log out')}</span>
                 </Button>
             </SidebarMenuItem>
         </SidebarMenu>

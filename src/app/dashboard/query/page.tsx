@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { localizedQueryResponse, LocalizedQueryResponseOutput } from '@/ai/flows/localized-query-response';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { useLocalization } from '@/context/localization-context';
 
 type Message = {
   id: string;
@@ -23,6 +24,7 @@ export default function QueryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { translate } = useLocalization();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,8 +60,8 @@ export default function QueryPage() {
         console.error("Error fetching AI response:", error);
         toast({
             variant: "destructive",
-            title: "Error",
-            description: "Failed to get a response. Please try again."
+            title: translate('error', "Error"),
+            description: translate('failedToGetResponse', "Failed to get a response. Please try again.")
         });
         // Optionally add an error message to the chat
         const errorMessage: Message = {
@@ -77,10 +79,10 @@ export default function QueryPage() {
     <Card className="h-[calc(100vh-8rem)] flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <MessageSquare className="text-primary"/> Ask Krishi SahAI
+            <MessageSquare className="text-primary"/> {translate('askKrishiSahai', 'Ask Krishi SahAI')}
         </CardTitle>
         <CardDescription>
-            Your AI farming assistant. Ask anything in any language.
+            {translate('askAnything', 'Your AI farming assistant. Ask anything in any language.')}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
@@ -130,17 +132,17 @@ export default function QueryPage() {
           </div>
         </ScrollArea>
         <div className="flex items-center gap-2 border-t pt-4">
-          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => toast({ title: "Voice input coming soon!"})}>
+          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => toast({ title: translate('voiceInputComingSoon', "Voice input coming soon!")})}>
             <Mic className="h-5 w-5" />
           </Button>
-           <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => toast({ title: "Image upload coming soon!"})}>
+           <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => toast({ title: translate('imageUploadComingSoon', "Image upload coming soon!")})}>
             <Paperclip className="h-5 w-5" />
           </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-            placeholder="Type your question here..."
+            placeholder={translate('typeYourQuestion', "Type your question here...")}
             className="flex-1"
             disabled={isLoading}
           />

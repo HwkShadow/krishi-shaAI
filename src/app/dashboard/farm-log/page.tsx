@@ -15,6 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ClipboardList, PlusCircle } from 'lucide-react';
+import { useLocalization } from '@/context/localization-context';
 
 const logSchema = z.object({
   activity: z.string().min(1, 'Activity is required'),
@@ -36,6 +37,7 @@ const initialLogs: LogEntry[] = [
 export default function FarmLogPage() {
   const [logs, setLogs] = useState<LogEntry[]>(initialLogs);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const { translate } = useLocalization();
 
   const form = useForm<z.infer<typeof logSchema>>({
     resolver: zodResolver(logSchema),
@@ -53,12 +55,12 @@ export default function FarmLogPage() {
     <div className="space-y-6">
         <div className="flex items-center justify-between">
             <div className="space-y-1">
-                <h1 className="text-3xl font-headline flex items-center gap-3"><ClipboardList className="text-primary"/>Farm Activity Log</h1>
-                <p className="text-muted-foreground">A record of your hard work and planning.</p>
+                <h1 className="text-3xl font-headline flex items-center gap-3"><ClipboardList className="text-primary"/>{translate('farmActivityLog', 'Farm Activity Log')}</h1>
+                <p className="text-muted-foreground">{translate('farmLogSubtitle', 'A record of your hard work and planning.')}</p>
             </div>
             <Button onClick={() => setIsFormVisible(!isFormVisible)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {isFormVisible ? 'Cancel' : 'Add New Log'}
+                {isFormVisible ? translate('cancel', 'Cancel') : 'Add New Log'}
             </Button>
         </div>
       
@@ -122,7 +124,7 @@ export default function FarmLogPage() {
                     </div>
                     
                     <div className="flex justify-end gap-2 pt-4">
-                         <Button type="button" variant="outline" onClick={() => { setIsFormVisible(false); form.reset(); }}>Cancel</Button>
+                         <Button type="button" variant="outline" onClick={() => { setIsFormVisible(false); form.reset(); }}>{translate('cancel', 'Cancel')}</Button>
                          <Button type="submit">Save Log</Button>
                     </div>
                 </form>

@@ -1,4 +1,6 @@
+'use client';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useLocalization } from "@/context/localization-context";
 import { Bell, CloudRain, Bug } from "lucide-react";
 
 const alerts = [
@@ -29,11 +31,12 @@ const alerts = [
 ];
 
 export default function AlertsPage() {
+  const { translate } = useLocalization();
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-3xl font-headline flex items-center gap-3"><Bell className="text-primary"/> Proactive Alerts</h1>
-        <p className="text-muted-foreground">Timely warnings to help you stay one step ahead.</p>
+        <h1 className="text-3xl font-headline flex items-center gap-3"><Bell className="text-primary"/> {translate('proactiveAlerts', 'Proactive Alerts')}</h1>
+        <p className="text-muted-foreground">{translate('alertsSubtitle', 'Timely warnings to help you stay one step ahead.')}</p>
       </div>
       <div className="space-y-4">
         {alerts.map((alert) => (
