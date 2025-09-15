@@ -1,3 +1,14 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    { "id": "farmer-field", "description": "Farmer in a field", "imageUrl": "https://picsum.photos/seed/farmer/800/1000", "imageHint": "farmer field" },
+    { "id": "user-avatar", "description": "User avatar", "imageUrl": "https://picsum.photos/seed/avatar/100", "imageHint": "person face" },
+    { "id": "tractor", "description": "Tractor in a field", "imageUrl": "https://picsum.photos/seed/tractor/400/300", "imageHint": "tractor field" },
+    { "id": "plant-leaf", "description": "Close up of a plant leaf", "imageUrl": "https://picsum.photos/seed/plant/600/400", "imageHint": "plant leaf" },
+    { "id": "query-icon", "description": "Icon representing a question", "imageUrl": "https://picsum.photos/seed/query/600/400", "imageHint": "question mark" },
+    { "id": "farm-log-notebook", "description": "A notebook for farm logs", "imageUrl": "https://picsum.photos/seed/farmlog/600/400", "imageHint": "notebook farm" },
+    { "id": "ramesh-avatar", "description": "Avatar for Ramesh K.", "imageUrl": "https://picsum.photos/seed/ramesh/40", "imageHint": "person face" },
+    { "id": "sita-avatar", "description": "Avatar for Sita D.", "imageUrl": "https://picsum.photos/seed/sita/40", "imageHint": "person face" },
+    { "id": "balwinder-avatar", "description": "Avatar for Balwinder S.", "imageUrl": "https://picsum.photos/seed/balwinder/40", "imageHint": "person face" },
+    { "id": "priya-avatar", "description": "Avatar for Priya M.", "imageUrl": "https://picsum.photos/seed/priya/40", "imageHint": "person face" }
+  ]
 }
