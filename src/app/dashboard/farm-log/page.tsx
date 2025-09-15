@@ -11,12 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarIcon, ClipboardList, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ClipboardList, PlusCircle } from 'lucide-react';
 
 const logSchema = z.object({
   activity: z.string().min(1, 'Activity is required'),
@@ -41,13 +39,13 @@ export default function FarmLogPage() {
 
   const form = useForm<z.infer<typeof logSchema>>({
     resolver: zodResolver(logSchema),
-    defaultValues: { crop: '', notes: '' },
+    defaultValues: { crop: '', notes: '', date: new Date() },
   });
 
   function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
     setLogs([newLog, ...logs]);
-    form.reset();
+    form.reset({ crop: '', notes: '', date: new Date() });
     setIsFormVisible(false);
   }
 
@@ -73,57 +71,58 @@ export default function FarmLogPage() {
             <CardContent>
                 <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <FormField control={form.control} name="activity" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Activity</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select an activity" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {activityOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}/>
-                        <FormField control={form.control} name="crop" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Crop</FormLabel>
-                                <FormControl><Input placeholder="e.g., Wheat, Rice" {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}/>
-                        <FormField control={form.control} name="date" render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>Date of Activity</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <FormField control={form.control} name="activity" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Activity</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <SelectTrigger><SelectValue placeholder="Select an activity" /></SelectTrigger>
                                         </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
-                                    </PopoverContent>
-                                </Popover>
+                                        <SelectContent>
+                                            {activityOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                            <FormField control={form.control} name="crop" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Crop</FormLabel>
+                                    <FormControl><Input placeholder="e.g., Wheat, Rice" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                            <FormField control={form.control} name="notes" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Notes (optional)</FormLabel>
+                                    <FormControl><Textarea placeholder="Any additional details..." {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                        </div>
+                         <FormField control={form.control} name="date" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Date of Activity</FormLabel>
+                                <FormControl>
+                                   <Card>
+                                      <Calendar 
+                                          mode="single" 
+                                          selected={field.value} 
+                                          onSelect={field.onChange} 
+                                          className="p-0"
+                                           disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                      />
+                                   </Card>
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}/>
                     </div>
-                    <FormField control={form.control} name="notes" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Notes (optional)</FormLabel>
-                            <FormControl><Textarea placeholder="Any additional details..." {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}/>
-                    <div className="flex justify-end gap-2">
-                         <Button type="button" variant="outline" onClick={() => setIsFormVisible(false)}>Cancel</Button>
+                    
+                    <div className="flex justify-end gap-2 pt-4">
+                         <Button type="button" variant="outline" onClick={() => { setIsFormVisible(false); form.reset(); }}>Cancel</Button>
                          <Button type="submit">Save Log</Button>
                     </div>
                 </form>
