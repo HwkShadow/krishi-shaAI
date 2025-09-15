@@ -36,17 +36,35 @@ const getWeatherFlow = ai.defineFlow(
   },
   async (input) => {
     // In a real app, you would call a weather API here.
-    // For this example, we'll return mock data based on the location.
-    const mockWeatherData: Record<string, GetWeatherOutput> = {
-        "punjab, india": { temperature: 35, condition: "Sunny", wind: 12, humidity: 40 },
-        "kerala, india": { temperature: 28, condition: "Cloudy with chance of rain", wind: 20, humidity: 85 },
-        "mumbai, india": { temperature: 31, condition: "Humid and Overcast", wind: 18, humidity: 78 },
-        "default": { temperature: 32, condition: "Sunny", wind: 15, humidity: 45 }
+    // For this example, we'll return mock data that's slightly more realistic.
+    const mockWeatherData: Record<string, Omit<GetWeatherOutput, 'condition'>> = {
+        "punjab, india": { temperature: 35, wind: 12, humidity: 40 },
+        "kerala, india": { temperature: 28, wind: 20, humidity: 85 },
+        "mumbai, india": { temperature: 31, wind: 18, humidity: 78 },
+        "default": { temperature: 32, wind: 15, humidity: 45 }
     };
     
     const locationKey = input.location.toLowerCase();
-    const weather = mockWeatherData[locationKey] || mockWeatherData["default"];
+    const baseWeather = mockWeatherData[locationKey] || mockWeatherData["default"];
+
+    const currentHour = new Date().getHours();
+    const isNight = currentHour < 6 || currentHour >= 18;
+
+    let condition = "Sunny";
+    if (locationKey.includes("kerala")) {
+      condition = isNight ? "Cloudy Night" : "Cloudy with chance of rain";
+    } else if (locationKey.includes("mumbai")) {
+      condition = isNight ? "Partly Cloudy" : "Humid and Overcast";
+    } else {
+      condition = isNight ? "Clear Night" : "Sunny";
+    }
     
-    return weather;
+    const finalWeather: GetWeatherOutput = {
+      ...baseWeather,
+      condition,
+      temperature: isNight ? baseWeather.temperature - 5 : baseWeather.temperature,
+    };
+    
+    return finalWeather;
   }
 );
