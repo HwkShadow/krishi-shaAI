@@ -93,15 +93,17 @@ export function AppSidebar() {
       <SidebarFooter className="border-t-0 p-2">
          <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip={translate('myProfile', 'My Profile')} onClick={() => toast({ title: translate('profilePageComingSoon', 'Profile page coming soon!')})} className='h-auto py-2 justify-start'>
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
-                      <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className='font-medium'>{user?.name || 'User'}</p>
-                      <p className='text-xs text-muted-foreground'>{translate('settingsAndLocation', 'Settings & Location')}</p>
-                    </div>
+                <SidebarMenuButton asChild tooltip={translate('myProfile', 'My Profile')} className='h-auto py-2 justify-start'>
+                  <Link href="/dashboard/profile">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
+                        <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className='font-medium'>{user?.name || 'User'}</p>
+                        <p className='text-xs text-muted-foreground'>{translate('profile', 'Profile')}</p>
+                      </div>
+                  </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

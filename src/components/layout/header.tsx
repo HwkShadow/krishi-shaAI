@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useSidebar } from '../ui/sidebar';
+import Link from 'next/link';
 
 export function AppHeader() {
     const { logout, user, updateLocation } = useAuth();
@@ -105,9 +106,11 @@ export function AppHeader() {
                 <MapPin className="mr-2 h-4 w-4" />
                 <span>Change Location</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => toast({ title: translate('profilePageComingSoon', "Profile page coming soon!")})}>
-              <User className="mr-2 h-4 w-4" />
-              <span>{translate('profile', 'Profile')}</span>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/profile">
+                <User className="mr-2 h-4 w-4" />
+                <span>{translate('profile', 'Profile')}</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => toast({ title: translate('settingsPageComingSoon', "Settings page coming soon!")})}>
               <Settings className="mr-2 h-4 w-4" />

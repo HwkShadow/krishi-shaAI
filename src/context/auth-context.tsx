@@ -15,6 +15,7 @@ type AuthContextType = {
   login: (email: string, location?: string, redirectUrl?: string) => void;
   logout: () => void;
   updateLocation: (newLocation: string) => void;
+  updateUser: (data: Partial<User>) => void;
   isLoading: boolean;
 };
 
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (email: string, location?: string, redirectUrl: string = "/dashboard") => {
-    const name = email.split('@')[0];
+    const name = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     const userPayload: User = { name, email, location: location || 'Punjab, India' };
 
     localStorage.setItem("isAuthenticated", "true");
@@ -65,10 +66,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
+  
+  const updateUser = (data: Partial<User>) => {
+    if(user) {
+        const updatedUser = {...user, ...data};
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  }
 
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, updateLocation, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, updateLocation, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
