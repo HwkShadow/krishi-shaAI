@@ -1,21 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, UploadCloud, Leaf, AlertTriangle, BadgePercent } from 'lucide-react';
+import { Loader2, UploadCloud, Leaf, AlertTriangle, BadgePercent, FileText, Mic, Square } from 'lucide-react';
 import { diagnosePlantDisease, DiagnosePlantDiseaseOutput } from '@/ai/flows/plant-disease-diagnosis';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from '@/components/ui/textarea';
+
+type InputMode = 'image' | 'text' | 'audio';
 
 export default function DiagnosePage() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [textInput, setTextInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<DiagnosePlantDiseaseOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<InputMode>('image');
+  const [isRecording, setIsRecording] = useState(false);
+  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,6 +40,7 @@ export default function DiagnosePage() {
             return;
         }
       setFile(selectedFile);
+      setTextInput('');
       setResult(null);
       setError(null);
       const reader = new FileReader();
@@ -49,11 +60,11 @@ export default function DiagnosePage() {
     });
 
   const handleDiagnose = async () => {
-    if (!file) {
+    if (!file && !textInput) {
       toast({
         variant: 'destructive',
-        title: 'No file selected',
-        description: 'Please upload an image of the plant.',
+        title: 'No input provided',
+        description: 'Please upload an image or describe the symptoms.',
       });
       return;
     }
@@ -63,8 +74,15 @@ export default function DiagnosePage() {
     setResult(null);
 
     try {
-      const photoDataUri = await toDataURL(file);
-      const diagnosisResult = await diagnosePlantDisease({ photoDataUri });
+      let photoDataUri: string | undefined;
+      if (file && inputMode === 'image') {
+        photoDataUri = await toDataURL(file);
+      }
+      
+      const diagnosisResult = await diagnosePlantDisease({ 
+        photoDataUri,
+        symptoms: textInput || undefined,
+      });
       setResult(diagnosisResult);
     } catch (e) {
       console.error(e);
@@ -76,6 +94,50 @@ export default function DiagnosePage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // In a real app, you would send this audioBlob to a speech-to-text API
+        // For this mock, we'll just use a placeholder text.
+        setTextInput('Audio recorded. Symptoms described: leaves are yellow and have brown spots.');
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Microphone access denied',
+        description: 'Please allow microphone access to record audio.',
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleAudioButtonClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
     }
   };
   
@@ -92,32 +154,62 @@ export default function DiagnosePage() {
           <Leaf className="mx-auto h-12 w-12 text-primary"/>
           <CardTitle className="text-3xl font-headline">Plant Disease Diagnosis</CardTitle>
           <CardDescription className="text-lg">
-            Upload an image of an affected plant to get an AI-powered diagnosis and treatment plan.
+            Use an image, text, or your voice to get an AI-powered diagnosis.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="relative flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed border-border p-8">
-            {previewUrl ? (
-              <div className="relative h-64 w-full max-w-md">
-                 <Image src={previewUrl} alt="Plant preview" fill className="rounded-md object-contain" />
-              </div>
-            ) : (
-                <div className="text-center">
-                    <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <p className="mt-2 text-muted-foreground">Drag & drop an image here, or click to select</p>
-                </div>
-            )}
-             <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="absolute h-full w-full cursor-pointer opacity-0"
-            />
-          </div>
+            <Tabs value={inputMode} onValueChange={(value) => setInputMode(value as InputMode)} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="image"><UploadCloud className="mr-2 h-4 w-4"/>Image</TabsTrigger>
+                    <TabsTrigger value="text"><FileText className="mr-2 h-4 w-4"/>Text</TabsTrigger>
+                    <TabsTrigger value="audio"><Mic className="mr-2 h-4 w-4"/>Audio</TabsTrigger>
+                </TabsList>
+                <TabsContent value="image">
+                    <div className="relative flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed border-border p-8 mt-4">
+                        {previewUrl ? (
+                        <div className="relative h-64 w-full max-w-md">
+                            <Image src={previewUrl} alt="Plant preview" fill className="rounded-md object-contain" />
+                        </div>
+                        ) : (
+                            <div className="text-center">
+                                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                                <p className="mt-2 text-muted-foreground">Drag & drop an image here, or click to select</p>
+                            </div>
+                        )}
+                        <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="absolute h-full w-full cursor-pointer opacity-0"
+                        />
+                    </div>
+                    {file && <p className="text-center text-sm text-muted-foreground mt-2">Selected file: {file.name}</p>}
+                </TabsContent>
+                <TabsContent value="text">
+                    <Textarea
+                        placeholder="e.g., 'The leaves are yellow with brown spots and the stems are weak...'"
+                        className="mt-4 min-h-[200px] text-base"
+                        value={textInput}
+                        onChange={(e) => {
+                            setTextInput(e.target.value);
+                            setFile(null);
+                        }}
+                    />
+                </TabsContent>
+                <TabsContent value="audio">
+                   <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed border-border p-8 mt-4 min-h-[200px]">
+                      <Button onClick={handleAudioButtonClick} size="lg" variant={isRecording ? 'destructive' : 'outline'} className="rounded-full h-24 w-24">
+                        {isRecording ? <Square className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
+                      </Button>
+                      <p className="text-muted-foreground">{isRecording ? 'Recording... Click to stop.' : 'Click to record symptoms'}</p>
+                      {textInput && inputMode === 'audio' && (
+                        <p className="text-sm text-center bg-muted p-2 rounded-md">{textInput}</p>
+                      )}
+                   </div>
+                </TabsContent>
+            </Tabs>
           
-          {file && <p className="text-center text-sm text-muted-foreground">Selected file: {file.name}</p>}
-
-          <Button onClick={handleDiagnose} disabled={!file || isLoading} className="w-full">
+          <Button onClick={handleDiagnose} disabled={(!file && !textInput) || isLoading} className="w-full">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

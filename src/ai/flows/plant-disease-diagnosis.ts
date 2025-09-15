@@ -14,9 +14,14 @@ import {z} from 'genkit';
 const DiagnosePlantDiseaseInputSchema = z.object({
   photoDataUri: z
     .string()
+    .optional()
     .describe(
       "A photo of a diseased plant, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  symptoms: z
+    .string()
+    .optional()
+    .describe('A text description of the plant\'s symptoms.'),
 });
 export type DiagnosePlantDiseaseInput = z.infer<typeof DiagnosePlantDiseaseInputSchema>;
 
@@ -35,10 +40,17 @@ const prompt = ai.definePrompt({
   name: 'diagnosePlantDiseasePrompt',
   input: {schema: DiagnosePlantDiseaseInputSchema},
   output: {schema: DiagnosePlantDiseaseOutputSchema},
-  prompt: `You are an expert in plant pathology. A farmer has provided a photo of a diseased plant. Your task is to diagnose the disease, suggest treatment options, and provide a confidence score for your diagnosis.
-  Analyze the following image and provide a diagnosis, treatment plan, and a confidence score between 0 and 1.
-
-  Photo: {{media url=photoDataUri}}
+  prompt: `You are an expert in plant pathology. A farmer needs help diagnosing a plant. 
+  
+  Analyze the provided information and provide a diagnosis, suggested treatment, and a confidence score between 0 and 1.
+  
+  The farmer has provided the following:
+  {{#if photoDataUri}}
+  - Photo: {{media url=photoDataUri}}
+  {{/if}}
+  {{#if symptoms}}
+  - Symptoms: {{{symptoms}}}
+  {{/if}}
   `,
 });
 
