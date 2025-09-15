@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { localizedQueryResponse, LocalizedQueryResponseOutput } from '@/ai/flows/localized-query-response';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 type Message = {
   id: string;
@@ -21,6 +22,7 @@ export default function QueryPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,8 +44,7 @@ export default function QueryPage() {
     setIsLoading(true);
 
     try {
-        // Mock location for now. In a real app, this would come from user profile.
-        const location = "Punjab, India";
+        const location = user?.location || "India";
         const result: LocalizedQueryResponseOutput = await localizedQueryResponse({ query: input, location });
         
         const aiMessage: Message = {
@@ -111,7 +112,7 @@ export default function QueryPage() {
                  {message.sender === 'user' && (
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                   </Avatar>
                 )}
               </div>

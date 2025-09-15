@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,6 +36,7 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
+  const { toast } = useToast();
   
   const LeafIcon = () => (
     <svg
@@ -82,7 +84,7 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings">
+                <SidebarMenuButton tooltip="Settings" onClick={() => toast({ title: "Settings page coming soon!"})}>
                     <Settings/>
                     <span>Settings</span>
                 </SidebarMenuButton>

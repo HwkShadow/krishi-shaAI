@@ -3,10 +3,16 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+type User = {
+  name: string;
+  email: string;
+  location: string | null;
+}
+
 type AuthContextType = {
   isAuthenticated: boolean;
-  location: string | null;
-  login: (location?: string, redirectUrl?: string) => void;
+  user: User | null;
+  login: (email: string, location?: string, redirectUrl?: string) => void;
   logout: () => void;
   isLoading: boolean;
 };
@@ -15,41 +21,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [location, setLocation] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     // Mock check for authentication status e.g., from localStorage
     const storedAuth = localStorage.getItem("isAuthenticated");
-    const storedLocation = localStorage.getItem("userLocation");
-    if (storedAuth === "true") {
+    const storedUser = localStorage.getItem("user");
+    if (storedAuth === "true" && storedUser) {
       setIsAuthenticated(true);
-      setLocation(storedLocation);
+      setUser(JSON.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
 
-  const login = (location?: string, redirectUrl: string = "/dashboard") => {
+  const login = (email: string, location?: string, redirectUrl: string = "/dashboard") => {
+    const name = email.split('@')[0];
+    const userPayload: User = { name, email, location: location || null };
+
     localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("user", JSON.stringify(userPayload));
+
     setIsAuthenticated(true);
-    if (location) {
-        localStorage.setItem("userLocation", location);
-        setLocation(location);
-    }
+    setUser(userPayload);
+    
     router.push(redirectUrl);
   };
 
   const logout = () => {
     localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("userLocation");
+    localStorage.removeItem("user");
     setIsAuthenticated(false);
-    setLocation(null);
+    setUser(null);
     router.push("/");
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, location, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -46,11 +46,10 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values); // In a real app, you'd call your auth service here.
     
     // Mock API call
     setTimeout(() => {
-      login(values.location);
+      login(values.email, values.location);
       setIsLoading(false);
     }, 1000);
   }
