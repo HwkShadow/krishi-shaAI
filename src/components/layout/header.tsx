@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings, User, Languages, MapPin, Loader2 } from 'lucide-react';
+import { LogOut, Settings, User, Languages, MapPin, Loader2, PanelLeft } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -20,9 +20,11 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { useSidebar } from '../ui/sidebar';
 
 export function AppHeader() {
     const { logout, user, updateLocation } = useAuth();
+    const { toggleSidebar } = useSidebar();
     const { toast } = useToast();
     const { language, setLanguage, translate } = useLocalization();
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -51,43 +53,22 @@ export function AppHeader() {
         }, 500);
     }
     
-    const LeafIcon = () => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-6 w-6 text-primary"
-      >
-        <path d="M11 20A7 7 0 0 1 4 13H2a9 9 0 0 0 18 0h-2a7 7 0 0 1-7 7Z" />
-        <path d="M12 10V2" />
-      </svg>
-    );
-
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="md:hidden" />
-        <LeafIcon />
-        <h1 className="hidden md:block text-xl font-headline text-primary">Krishi SahAI</h1>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleSidebar}>
+            <PanelLeft />
+            <span className="sr-only">Toggle Sidebar</span>
+        </Button>
       </div>
 
       <div className="ml-auto flex items-center gap-2 md:gap-4">
-        <Button variant="ghost" className="hidden md:flex items-center gap-2 text-sm" onClick={() => setIsLocationModalOpen(true)}>
-            <MapPin className="h-4 w-4" />
-            <span className="truncate max-w-[150px]">{user?.location || translate('location', 'Location')}</span>
-        </Button>
         
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <Languages className="h-5 w-5" />
-                    <span className="sr-only">Change language</span>
+                <Button variant="outline" className="gap-2">
+                    <Languages className="h-5 w-5 text-muted-foreground" />
+                    <span>{language.toUpperCase()}</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -120,7 +101,7 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-             <DropdownMenuItem className="md:hidden" onClick={() => setIsLocationModalOpen(true)}>
+             <DropdownMenuItem onClick={() => setIsLocationModalOpen(true)}>
                 <MapPin className="mr-2 h-4 w-4" />
                 <span>Change Location</span>
             </DropdownMenuItem>

@@ -25,6 +25,12 @@ const translations: Record<Language, Record<string, string>> = {
     comingSoon: "feature coming soon!",
     profilePageComingSoon: "Profile page coming soon!",
     settingsPageComingSoon: "Settings page coming soon!",
+    kisanKaSathi: "किसान का साथी",
+    goodMorning: "Good Morning",
+    goodAfternoon: "Good Afternoon",
+    goodEvening: "Good Evening",
+    myProfile: "My Profile",
+    settingsAndLocation: "Settings & Location",
 
     // Sidebar
     dashboard: "Dashboard",
@@ -33,6 +39,11 @@ const translations: Record<Language, Record<string, string>> = {
     farmLog: "Farm Log",
     community: "Community",
     alerts: "Alerts",
+    aiAssistant: "AI Assistant",
+    farmManagement: "Farm Management",
+    farmersCommunity: "Farmer's Community",
+    alertsAndNews: "Alerts & News",
+
 
     // Login/Signup
     welcomeBack: "Welcome Back",
@@ -49,7 +60,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Dashboard Page
     welcomeMessage: "Welcome, {name}!",
-    welcomeSubtitle: "Your digital companion for a smarter, more productive harvest. Here's what you can do today.",
+    welcomeSubtitle: "Your digital farming companion is ready. How can I help today?",
     weatherIn: "Weather in {location}",
     weatherConditions: "Current conditions and forecast.",
     wind: "Wind",
@@ -67,6 +78,17 @@ const translations: Record<Language, Record<string, string>> = {
     manageFarmLogDescription: "Keep track of all your farming activities in one place.",
     viewLog: "View Log",
     weatherNotAvailable: "Weather data not available.",
+    plantDoctor: "Plant Doctor",
+    diagnoseWithPhoto: "Diagnose with a photo",
+    voiceQuery: "Voice Query",
+    askWithYourVoice: "Ask with your voice",
+    askAnyQuestion: "Ask any question",
+    quickOverview: "Quick Overview",
+    weatherToday: "Weather Today",
+    lightRainTomorrow: "Light rain expected tomorrow",
+    recentFarmActivities: "Recent Farm Activities",
+    noRecentActivities: "No recent activities logged.",
+    noNewAlerts: "No new alerts or news.",
     
     // Diagnose Page
     plantDiseaseDiagnosis: "Plant Disease Diagnosis",
@@ -95,7 +117,7 @@ const translations: Record<Language, Record<string, string>> = {
     symptomsPlaceholder: "e.g., 'The leaves are yellow with brown spots and the stems are weak...'",
 
     // Query Page
-    askKrishiSahai: "Ask Krishi SahAI",
+    askKrishiSahai: "AI Assistant",
     askAnything: "Your AI farming assistant. Ask anything in any language.",
     typeYourQuestion: "Type your question here...",
     send: "Send",
@@ -131,6 +153,13 @@ const translations: Record<Language, Record<string, string>> = {
     comingSoon: "सुविधा जल्द ही आ रही है!",
     profilePageComingSoon: "प्रोफ़ाइल पृष्ठ जल्द ही आ रहा है!",
     settingsPageComingSoon: "सेटिंग्स पृष्ठ जल्द ही आ रहा है!",
+    kisanKaSathi: "किसान का साथी",
+    goodMorning: "सुप्रभात",
+    goodAfternoon: "नमस्कार",
+    goodEvening: "शुभ संध्या",
+    myProfile: "मेरी प्रोफाइल",
+    settingsAndLocation: "सेटिंग्स और स्थान",
+
 
     // Sidebar
     dashboard: "डैशबोर्ड",
@@ -139,6 +168,10 @@ const translations: Record<Language, Record<string, string>> = {
     farmLog: "फार्म लॉग",
     community: "समुदाय",
     alerts: "अलर्ट",
+    aiAssistant: "AI सहायक",
+    farmManagement: "फार्म प्रबंधन",
+    farmersCommunity: "किसान समुदाय",
+    alertsAndNews: "अलर्ट और समाचार",
 
     // Login/Signup
     welcomeBack: "वापसी पर स्वागत है",
@@ -155,7 +188,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Dashboard Page
     welcomeMessage: "नमस्ते, {name}!",
-    welcomeSubtitle: "एक स्मार्ट, अधिक उत्पादक फसल के लिए आपका डिजिटल साथी। आज आप यह कर सकते हैं।",
+    welcomeSubtitle: "आपका डिजिटल खेती साथी तैयार है। मैं आज आपकी कैसे मदद कर सकता हूँ?",
     weatherIn: "{location} में मौसम",
     weatherConditions: "वर्तमान स्थितियां और पूर्वानुमान।",
     wind: "हवा",
@@ -173,6 +206,17 @@ const translations: Record<Language, Record<string, string>> = {
     manageFarmLogDescription: "अपनी सभी खेती की गतिविधियों का एक ही स्थान पर हिसाब रखें।",
     viewLog: "लॉग देखें",
     weatherNotAvailable: "मौसम डेटा उपलब्ध नहीं है।",
+    plantDoctor: "प्लांट डॉक्टर",
+    diagnoseWithPhoto: "फोटो से निदान करें",
+    voiceQuery: "वॉयस क्वेरी",
+    askWithYourVoice: "अपनी आवाज से पूछें",
+    askAnyQuestion: "कोई भी प्रश्न पूछें",
+    quickOverview: "त्वरित अवलोकन",
+    weatherToday: "आज का मौसम",
+    lightRainTomorrow: "कल हल्की बारिश की उम्मीद है",
+    recentFarmActivities: "हाल की कृषि गतिविधियाँ",
+    noRecentActivities: "कोई हाल की गतिविधियाँ लॉग नहीं की गईं।",
+    noNewAlerts: "कोई नया अलर्ट या समाचार नहीं।",
 
     // Diagnose Page
     plantDiseaseDiagnosis: "पौध रोग निदान",
@@ -192,8 +236,8 @@ const translations: Record<Language, Record<string, string>> = {
     pleaseProvideInput: "कृपया एक छवि अपलोड करें या लक्षणों का वर्णन करें।",
     diagnosisFailed: "निदान विफल",
     diagnosisError: "निदान प्राप्त नहीं हो सका। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।",
-    recordSymptoms: "लक्षण रिकॉर्ड करने के लिए क्लिक करें",
-    recording: "रिकॉर्डिंग हो रही है... रोकने के लिए क्लिक करें।",
+    recordSymptoms: "लक्षण रिकॉर्ड करने के لیے کلک کریں",
+    recording: "ریکارڈنگ ہو رہی ہے... روکنے کے لیے کلک کریں۔",
     invalidFileType: "अमान्य फ़ाइल प्रकार",
     uploadAnImage: "कृपया एक छवि फ़ाइल अपलोड करें।",
     microphoneAccessDenied: "माइक्रोफ़ोन एक्सेस अस्वीकृत",
@@ -201,7 +245,7 @@ const translations: Record<Language, Record<string, string>> = {
     symptomsPlaceholder: "उदा., 'पत्तियां पीली हैं और भूरे धब्बे हैं और तने कमजोर हैं...'",
     
     // Query Page
-    askKrishiSahai: "कृषि सहाई से पूछें",
+    askKrishiSahai: "AI सहायक",
     askAnything: "आपका AI खेती सहायक। किसी भी भाषा में कुछ भी पूछें।",
     typeYourQuestion: "अपना प्रश्न यहाँ लिखें...",
     send: "भेजें",
@@ -237,6 +281,12 @@ const translations: Record<Language, Record<string, string>> = {
     comingSoon: "ഫീച്ചർ ഉടൻ വരുന്നു!",
     profilePageComingSoon: "പ്രൊഫൈൽ പേജ് ഉടൻ വരുന്നു!",
     settingsPageComingSoon: "ക്രമീകരണ പേജ് ഉടൻ വരുന്നു!",
+    kisanKaSathi: "കിസാൻ കാ സാਥി",
+    goodMorning: "സുപ്രഭാതം",
+    goodAfternoon: "നമസ്കാരം",
+    goodEvening: "ശുഭ സായാഹ്നം",
+    myProfile: "എന്റെ പ്രൊഫൈൽ",
+    settingsAndLocation: "ക്രമീകരണങ്ങളും സ്ഥലവും",
 
     // Sidebar
     dashboard: "ഡാഷ്ബോർഡ്",
@@ -245,6 +295,10 @@ const translations: Record<Language, Record<string, string>> = {
     farmLog: "ഫാം ലോഗ്",
     community: "കമ്മ്യൂണിറ്റി",
     alerts: "അലേർട്ടുകൾ",
+    aiAssistant: "AI അസിസ്റ്റന്റ്",
+    farmManagement: "ഫാം മാനേജ്മെന്റ്",
+    farmersCommunity: "കർഷക സമൂഹം",
+    alertsAndNews: "അലേർട്ടുകളും വാർത്തകളും",
 
     // Login/Signup
     welcomeBack: "വീണ്ടും സ്വാഗതം",
@@ -261,7 +315,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Dashboard Page
     welcomeMessage: "സ്വാഗതം, {name}!",
-    welcomeSubtitle: "മികച്ചതും കൂടുതൽ ഉൽപ്പാദനക്ഷമവുമായ വിളവെടുപ്പിനായി നിങ്ങളുടെ ഡിജിറ്റൽ കൂട്ടാളി. ഇന്ന് നിങ്ങൾക്ക് ചെയ്യാൻ കഴിയുന്ന കാര്യങ്ങൾ ഇതാ.",
+    welcomeSubtitle: "നിങ്ങളുടെ ഡിജിറ്റൽ ഫാമിംഗ് കൂട്ടാളി തയ്യാറാണ്. ഇന്ന് ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കും?",
     weatherIn: "{location}ലെ കാലാവസ്ഥ",
     weatherConditions: "നിലവിലെ അവസ്ഥകളും പ്രവചനവും.",
     wind: "കാറ്റ്",
@@ -279,6 +333,17 @@ const translations: Record<Language, Record<string, string>> = {
     manageFarmLogDescription: "നിങ്ങളുടെ എല്ലാ കാർഷിക പ്രവർത്തനങ്ങളും ഒരിടത്ത് സൂക്ഷിക്കുക.",
     viewLog: "ലോഗ് കാണുക",
     weatherNotAvailable: "കാലാവസ്ഥാ ഡാറ്റ ലഭ്യമല്ല.",
+    plantDoctor: "പ്ലാന്റ് ഡോക്ടർ",
+    diagnoseWithPhoto: "ഫോട്ടോ ഉപയോഗിച്ച് നിർണ്ണയിക്കുക",
+    voiceQuery: "വോയ്‌സ് ചോദ്യം",
+asWithYourVoice: "നിങ്ങളുടെ ശബ്ദം ഉപയോഗിച്ച് ചോദിക്കുക",
+    askAnyQuestion: "ഏത് ചോദ്യവും ചോദിക്കുക",
+    quickOverview: "ദ്രുത അവലോകനം",
+    weatherToday: "ഇന്നത്തെ കാലാവസ്ഥ",
+    lightRainTomorrow: "നാളെ നേരിയ മഴ പ്രതീക്ഷിക്കുന്നു",
+    recentFarmActivities: "സമീപകാല ഫാം പ്രവർത്തനങ്ങൾ",
+    noRecentActivities: "സമീപകാല പ്രവർത്തനങ്ങളൊന്നും ലോഗ് ചെയ്തിട്ടില്ല.",
+    noNewAlerts: "പുതിയ അലേർട്ടുകളോ വാർത്തകളോ ഇല്ല.",
     
     // Diagnose Page
     plantDiseaseDiagnosis: "സസ്യരോഗ നിർണ്ണയം",
@@ -307,7 +372,7 @@ const translations: Record<Language, Record<string, string>> = {
     symptomsPlaceholder: "ഉദാഹരണത്തിന്, 'ഇലകൾ മഞ്ഞ നിറത്തിലും തവിട്ടുനിറത്തിലുള്ള പുള്ളികളോടും കൂടിയതും തണ്ടുകൾ ദുർബലവുമാണ്...'",
 
     // Query Page
-    askKrishiSahai: "കൃഷി സഹאיയോട് ചോദിക്കുക",
+    askKrishiSahai: "AI അസിസ്റ്റന്റ്",
     askAnything: "നിങ്ങളുടെ AI കൃഷി സഹായി. ഏത് ഭാഷയിലും എന്തും ചോദിക്കാം.",
     typeYourQuestion: "നിങ്ങളുടെ ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക...",
     send: "അയയ്ക്കുക",
@@ -317,7 +382,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Farm Log Page
     farmActivityLog: "ഫാം ആക്റ്റിവിറ്റി ലോഗ്",
-    farmLogSubtitle: "നിങ്ങളുടെ കഠിനാധ്വാനത്തിന്റെയും ആസൂത്രണത്തിന്റെയും ഒരു രേഖ.",
+    farmLogSubtitle: "നിങ്ങളുടെ കഠിനാധ്വാനത്തിന്റെയും ആസูത്രണത്തിന്റെയും ഒരു രേഖ.",
 
     // Community Page
     communityForum: "കമ്മ്യൂണിറ്റി ഫോറം",
@@ -351,7 +416,7 @@ export function LocalizationProvider({ children }: { children: ReactNode }) {
   };
 
   const translate = (key: string, defaultText: string): string => {
-    return translations[language]?.[key] || defaultText;
+    return translations[language]?.[key] || translations['en']?.[key] || defaultText;
   }
 
   return (

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, MessageSquare, Mic, Paperclip, Send } from 'lucide-react';
+import { Loader2, Bot, Mic, Paperclip, Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { localizedQueryResponse, LocalizedQueryResponseOutput } from '@/ai/flows/localized-query-response';
@@ -63,7 +63,6 @@ export default function QueryPage() {
             title: translate('error', "Error"),
             description: translate('failedToGetResponse', "Failed to get a response. Please try again.")
         });
-        // Optionally add an error message to the chat
         const errorMessage: Message = {
             id: (Date.now() + 1).toString(),
             text: "Sorry, I couldn't process your request right now. Please try again later.",
@@ -79,7 +78,7 @@ export default function QueryPage() {
     <Card className="h-[calc(100vh-8rem)] flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <MessageSquare className="text-primary"/> {translate('askKrishiSahai', 'Ask Krishi SahAI')}
+            <Bot className="text-primary"/> {translate('askKrishiSahai', 'AI Assistant')}
         </CardTitle>
         <CardDescription>
             {translate('askAnything', 'Your AI farming assistant. Ask anything in any language.')}

@@ -7,16 +7,18 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarGroup,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
-  Stethoscope,
-  MessageSquare,
-  ClipboardList,
+  Bot,
+  Tractor,
   Users,
   Bell,
   LogOut,
   Settings,
+  LifeBuoy,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,20 +26,20 @@ import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useLocalization } from '@/context/localization-context';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { toast } = useToast();
   const { translate } = useLocalization();
 
   const navItems = [
     { href: '/dashboard', label: translate('dashboard', 'Dashboard'), icon: LayoutDashboard },
-    { href: '/dashboard/diagnose', label: translate('diagnose', 'Diagnose'), icon: Stethoscope },
-    { href: '/dashboard/query', label: translate('query', 'Query'), icon: MessageSquare },
-    { href: '/dashboard/farm-log', label: translate('farmLog', 'Farm Log'), icon: ClipboardList },
-    { href: '/dashboard/community', label: translate('community', 'Community'), icon: Users },
-    { href: '/dashboard/alerts', label: translate('alerts', 'Alerts'), icon: Bell },
+    { href: '/dashboard/query', label: translate('aiAssistant', 'AI Assistant'), icon: Bot },
+    { href: '/dashboard/farm-log', label: translate('farmManagement', 'Farm Management'), icon: Tractor },
+    { href: '/dashboard/community', label: translate('community', 'Farmer\'s Community'), icon: Users },
+    { href: '/dashboard/alerts', label: translate('alertsAndNews', 'Alerts & News'), icon: Bell },
   ];
   
   const LeafIcon = () => (
@@ -60,13 +62,16 @@ export function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="border-b">
+      <SidebarHeader className="border-b-0 p-4">
         <div className="flex items-center gap-2">
             <LeafIcon />
-            <h1 className="text-2xl font-headline text-primary">Krishi SahAI</h1>
+            <div>
+              <h1 className="text-xl font-semibold text-primary">Krishi SahAI</h1>
+              <p className='text-xs text-muted-foreground'>{translate('kisanKaSathi', 'किसान का साथी')}</p>
+            </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-2">
+      <SidebarContent className="p-4">
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
@@ -74,9 +79,10 @@ export function AppSidebar() {
                 asChild
                 isActive={pathname === item.href}
                 tooltip={item.label}
+                className="h-10 justify-start"
               >
                 <Link href={item.href}>
-                  <item.icon />
+                  <item.icon className="h-5 w-5" />
                   <span>{item.label}</span>
                 </Link>
               </SidebarMenuButton>
@@ -84,19 +90,19 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="border-t">
-        <SidebarMenu>
+      <SidebarFooter className="border-t-0 p-2">
+         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip={translate('settings', 'Settings')} onClick={() => toast({ title: translate('settingsPageComingSoon', 'Settings page coming soon!')})}>
-                    <Settings/>
-                    <span>{translate('settings', 'Settings')}</span>
+                <SidebarMenuButton tooltip={translate('myProfile', 'My Profile')} onClick={() => toast({ title: translate('profilePageComingSoon', 'Profile page coming soon!')})} className='h-auto py-2 justify-start'>
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
+                      <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className='font-medium'>{user?.name || 'User'}</p>
+                      <p className='text-xs text-muted-foreground'>{translate('settingsAndLocation', 'Settings & Location')}</p>
+                    </div>
                 </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-                <Button variant="ghost" className="w-full justify-start gap-2 p-2" onClick={logout}>
-                    <LogOut className="h-4 w-4"/>
-                    <span className="group-data-[collapsible=icon]:hidden">{translate('logout', 'Log out')}</span>
-                </Button>
             </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

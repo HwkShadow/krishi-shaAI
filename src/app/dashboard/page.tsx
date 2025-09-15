@@ -2,9 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, MessageSquare, ClipboardList, ArrowRight, Sun, Wind, Droplets, Newspaper, Loader2 } from "lucide-react";
+import { Stethoscope, Bot, Mic, ArrowRight, Sun, Wind, Droplets, Cloud, Bell, ClipboardList, MessageSquare, Loader2 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { useLocalization } from "@/context/localization-context";
 import { useEffect, useState } from "react";
@@ -15,41 +14,47 @@ export default function DashboardPage() {
   const { translate } = useLocalization();
   const [weather, setWeather] = useState<GetWeatherOutput | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 12) {
+      setGreeting(translate('goodMorning', 'Good Morning'));
+    } else if (currentHour < 18) {
+      setGreeting(translate('goodAfternoon', 'Good Afternoon'));
+    } else {
+      setGreeting(translate('goodEvening', 'Good Evening'));
+    }
+  }, [translate]);
   
   const features = [
     {
-      title: translate('diagnosePlantDisease', "Diagnose Plant Disease"),
-      description: translate('diagnoseDescription', "Upload a photo to detect diseases and get treatment advice."),
+      title: translate('aiAssistant', "AI Assistant"),
+      description: translate('askAnyQuestion', "Ask any question"),
+      icon: Bot,
+      href: "/dashboard/query",
+      color: "bg-green-500 hover:bg-green-600",
+    },
+    {
+      title: translate('plantDoctor', "Plant Doctor"),
+      description: translate('diagnoseWithPhoto', "Diagnose with a photo"),
       icon: Stethoscope,
       href: "/dashboard/diagnose",
-      cta: translate('startDiagnosis', "Start Diagnosis"),
-      image: "https://picsum.photos/seed/plant/600/400",
-      imageHint: "plant leaf"
+      color: "bg-blue-500 hover:bg-blue-600",
     },
     {
-      title: translate('askAnExpert', "Ask an Expert"),
-      description: translate('askAnExpertDescription', "Get answers to your farming questions from our AI expert."),
-      icon: MessageSquare,
+      title: translate('voiceQuery', "Voice Query"),
+      description: translate('askWithYourVoice', "Ask with your voice"),
+      icon: Mic,
       href: "/dashboard/query",
-      cta: translate('askNow', "Ask Now"),
-      image: "https://picsum.photos/seed/query/600/400",
-      imageHint: "question mark"
-    },
-    {
-      title: translate('manageFarmLog', "Manage Your Farm Log"),
-      description: translate('manageFarmLogDescription', "Keep track of all your farming activities in one place."),
-      icon: ClipboardList,
-      href: "/dashboard/farm-log",
-      cta: translate('viewLog', "View Log"),
-      image: "https://picsum.photos/seed/farmlog/600/400",
-      imageHint: "notebook farm"
+      color: "bg-purple-500 hover:bg-purple-600",
     },
   ];
 
-  const newsItems = [
-      { id: 1, title: "New government subsidy for drip irrigation announced.", source: "Krishi Jagran", time: "2h ago" },
-      { id: 2, title: "Weather forecast: Expect light showers this weekend.", source: "Local Times", time: "8h ago" },
-      { id: 3, title: "Market Watch: Soybean prices see a 5% increase.", source: "Mandi News", time: "1d ago" },
+  const quickOverview = [
+      { id: 1, title: "AI Queries", value: "0", icon: MessageSquare },
+      { id: 2, title: "Farm Activities", value: "1", icon: ClipboardList },
+      { id: 3, title: "New Alerts", value: "3", icon: Bell },
   ]
   
   useEffect(() => {
@@ -61,14 +66,12 @@ export default function DashboardPage() {
           setWeather(weatherData);
         } catch (error) {
           console.error("Failed to fetch weather:", error);
-          // Set default weather on error
-          setWeather({ temperature: 32, condition: "Sunny", wind: 15, humidity: 45 });
+          setWeather({ temperature: 28, condition: "Partly Cloudy", wind: 12, humidity: 65 });
         } finally {
           setWeatherLoading(false);
         }
       } else {
-        // Set default weather if no location
-        setWeather({ temperature: 32, condition: "Sunny", wind: 15, humidity: 45 });
+        setWeather({ temperature: 28, condition: "Partly Cloudy", wind: 12, humidity: 65 });
         setWeatherLoading(false);
       }
     }
@@ -78,108 +81,94 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-        <section className="bg-primary/10 rounded-lg p-8 space-y-4">
-            <h1 className="text-4xl font-headline text-primary">{translate('welcomeMessage', 'Welcome, {name}!').replace('{name}', user?.name || 'Farmer')}</h1>
-            <p className="text-lg text-foreground/80">
-                {translate('welcomeSubtitle', "Your digital companion for a smarter, more productive harvest. Here's what you can do today.")}
+        <section>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">{greeting}, {user?.name || 'Hello'}! 🌱</h1>
+            <p className="text-muted-foreground">
+                {translate('welcomeSubtitle', "Your digital farming companion is ready. How can I help today?")}
             </p>
         </section>
         
-        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            <Card className="lg:col-span-3">
-                <CardHeader>
-                    <CardTitle className="font-headline">{translate('weatherIn', 'Weather in {location}').replace('{location}', user?.location || 'your area')}</CardTitle>
-                    <CardDescription>{translate('weatherConditions', 'Current conditions and forecast.')}</CardDescription>
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+             {features.map((feature) => (
+                <Card key={feature.title} className={`text-white flex items-center justify-between p-6 ${feature.color} transition-transform hover:scale-105`}>
+                    <div className="flex items-center gap-4">
+                        <feature.icon className="h-8 w-8" />
+                        <div>
+                            <CardTitle className="text-lg font-bold">{feature.title}</CardTitle>
+                            <CardDescription className="text-white/80">{feature.description}</CardDescription>
+                        </div>
+                    </div>
+                    <Link href={feature.href}><ArrowRight className="h-6 w-6" /></Link>
+                </Card>
+            ))}
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+                 <CardHeader>
+                    <CardTitle>{translate('quickOverview', 'Quick Overview')}</CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row items-center justify-around gap-6 text-center">
-                    {weatherLoading ? (
-                      <div className="flex items-center justify-center w-full h-24">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    ) : weather ? (
-                      <>
-                        <div className="flex items-center gap-4">
-                            <Sun className="h-16 w-16 text-yellow-500" />
-                            <div>
-                                <p className="text-5xl font-bold">{weather.temperature}°C</p>
-                                <p className="text-muted-foreground">{weather.condition}</p>
+                <CardContent className="grid grid-cols-3 gap-4 text-center">
+                    {quickOverview.map(item => (
+                        <div key={item.id} className="bg-muted/50 p-4 rounded-lg flex flex-col items-center gap-2">
+                            <div className="p-3 bg-white rounded-full text-primary">
+                                <item.icon className="h-6 w-6"/>
                             </div>
+                            <p className="text-2xl font-bold">{item.value}</p>
+                            <p className="text-sm text-muted-foreground">{item.title}</p>
                         </div>
-                        <div className="flex items-center gap-4 text-muted-foreground">
-                            <Wind className="h-8 w-8 text-primary/70" />
-                            <div>
-                                <p className="text-lg font-bold">{weather.wind} km/h</p>
-                                <p className="text-sm">{translate('wind', 'Wind')}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 text-muted-foreground">
-                            <Droplets className="h-8 w-8 text-primary/70" />
-                            <div>
-                                <p className="text-lg font-bold">{weather.humidity}%</p>
-                                <p className="text-sm">{translate('humidity', 'Humidity')}</p>
-                            </div>
-                        </div>
-                      </>
-                    ) : (
-                      <p>{translate('weatherNotAvailable', 'Weather data not available.')}</p>
-                    )}
+                    ))}
                 </CardContent>
             </Card>
-
-             <Card className="lg:col-span-2">
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                 <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-2"><Newspaper className="text-primary"/> {translate('localNews', 'Local News')}</CardTitle>
-                    <CardDescription>{translate('regionalUpdates', 'Updates from your region.')}</CardDescription>
+                    <CardTitle className="flex justify-between items-center">{translate('weatherToday', 'Weather Today')} <Cloud className="h-8 w-8"/></CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <ul className="space-y-3">
-                        {newsItems.map(item => (
-                            <li key={item.id} className="text-sm border-b border-border/70 pb-2 last:border-b-0">
-                                <p className="font-semibold hover:text-primary cursor-pointer">{item.title}</p>
-                                <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
-                                    <span>{item.source}</span>
-                                    <span>{item.time}</span>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                <CardContent className="space-y-4">
+                    {weatherLoading ? (
+                        <div className="flex items-center justify-center w-full h-24">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : weather ? (
+                        <>
+                            <div>
+                                <p className="text-5xl font-bold">{weather.temperature}°C</p>
+                                <p className="text-white/80">{weather.condition}</p>
+                            </div>
+                            <div className="flex justify-between text-sm text-white/80">
+                                <p className="flex items-center gap-1"><Droplets className="h-4 w-4" /> {translate('humidity', 'Humidity')}: {weather.humidity}%</p>
+                                <p className="flex items-center gap-1"><Wind className="h-4 w-4" /> {weather.wind} km/h</p>
+                            </div>
+                            <div className="bg-white/20 rounded-md p-2 text-center text-xs">
+                                {translate('lightRainTomorrow', 'Light rain expected tomorrow')}
+                            </div>
+                        </>
+                    ) : (
+                        <p>{translate('weatherNotAvailable', 'Weather data not available.')}</p>
+                    )}
                 </CardContent>
             </Card>
         </section>
 
-        <section>
-            <h2 className="text-3xl font-headline mb-6">{translate('quickActions', 'Quick Actions')}</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {features.map((feature) => (
-                    <Card key={feature.title} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
-                         <div className="relative h-48 w-full">
-                            <Image 
-                                src={feature.image}
-                                alt={feature.title}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={feature.imageHint}
-                            />
-                         </div>
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <div className="bg-primary/20 p-3 rounded-full">
-                                    <feature.icon className="h-6 w-6 text-primary" />
-                                </div>
-                                <CardTitle className="font-headline text-xl">{feature.title}</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow flex flex-col">
-                            <CardDescription className="flex-grow">{feature.description}</CardDescription>
-                            <Button asChild className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                                <Link href={feature.href}>
-                                    {feature.cta} <ArrowRight className="ml-2 h-4 w-4" />
-                                </Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+        <section className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>{translate('recentFarmActivities', 'Recent Farm Activities')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {/* Placeholder for recent activities */}
+                    <p className="text-muted-foreground">{translate('noRecentActivities', 'No recent activities logged.')}</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>{translate('alertsAndNews', 'Alerts & News')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     {/* Placeholder for alerts & news */}
+                    <p className="text-muted-foreground">{translate('noNewAlerts', 'No new alerts or news.')}</p>
+                </CardContent>
+            </Card>
         </section>
     </div>
   );
