@@ -23,6 +23,7 @@ export type DiagnosePlantDiseaseInput = z.infer<typeof DiagnosePlantDiseaseInput
 const DiagnosePlantDiseaseOutputSchema = z.object({
   diagnosis: z.string().describe('The diagnosis of the plant disease.'),
   treatment: z.string().describe('Suggested treatment options for the diagnosed disease.'),
+  confidenceScore: z.number().describe('A confidence score for the diagnosis, from 0 to 1.'),
 });
 export type DiagnosePlantDiseaseOutput = z.infer<typeof DiagnosePlantDiseaseOutputSchema>;
 
@@ -34,8 +35,8 @@ const prompt = ai.definePrompt({
   name: 'diagnosePlantDiseasePrompt',
   input: {schema: DiagnosePlantDiseaseInputSchema},
   output: {schema: DiagnosePlantDiseaseOutputSchema},
-  prompt: `You are an expert in plant pathology. A farmer has provided a photo of a diseased plant. Your task is to diagnose the disease and suggest treatment options.
-  Analyze the following image and provide a diagnosis and treatment plan.
+  prompt: `You are an expert in plant pathology. A farmer has provided a photo of a diseased plant. Your task is to diagnose the disease, suggest treatment options, and provide a confidence score for your diagnosis.
+  Analyze the following image and provide a diagnosis, treatment plan, and a confidence score between 0 and 1.
 
   Photo: {{media url=photoDataUri}}
   `,

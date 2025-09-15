@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, UploadCloud, Leaf, AlertTriangle } from 'lucide-react';
+import { Loader2, UploadCloud, Leaf, AlertTriangle, BadgePercent } from 'lucide-react';
 import { diagnosePlantDisease, DiagnosePlantDiseaseOutput } from '@/ai/flows/plant-disease-diagnosis';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 export default function DiagnosePage() {
   const [file, setFile] = useState<File | null>(null);
@@ -20,6 +21,14 @@ export default function DiagnosePage() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
+        if (!selectedFile.type.startsWith('image/')) {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid file type',
+                description: 'Please upload an image file.',
+            });
+            return;
+        }
       setFile(selectedFile);
       setResult(null);
       setError(null);
@@ -133,12 +142,19 @@ export default function DiagnosePage() {
                 <div className="grid md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 font-headline">
-                                Diagnosis
+                            <CardTitle className="flex items-center justify-between font-headline">
+                                <span>Diagnosis</span>
+                                <PillIcon>{result.diagnosis}</PillIcon>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
-                           <PillIcon>{result.diagnosis}</PillIcon>
+                        <CardContent className="space-y-4">
+                           <div className="space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="font-medium flex items-center gap-2"><BadgePercent/> Confidence</span>
+                                    <span>{(result.confidenceScore * 100).toFixed(0)}%</span>
+                                </div>
+                                <Progress value={result.confidenceScore * 100} />
+                           </div>
                         </CardContent>
                     </Card>
                     <Card>
