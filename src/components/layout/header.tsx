@@ -11,16 +11,45 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings, User, Languages } from 'lucide-react';
+import { LogOut, Settings, User, Languages, MapPin, Loader2 } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLocalization } from '@/context/localization-context';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 export function AppHeader() {
-    const { logout, user } = useAuth();
+    const { logout, user, updateLocation } = useAuth();
     const { toast } = useToast();
     const { language, setLanguage, translate } = useLocalization();
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [newLocation, setNewLocation] = useState(user?.location || '');
+    const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+
+    const handleLocationUpdate = () => {
+        if (!newLocation.trim()) {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid Location',
+                description: 'Please enter a valid location.',
+            });
+            return;
+        }
+        setIsUpdatingLocation(true);
+        // Simulate API call
+        setTimeout(() => {
+            updateLocation(newLocation);
+            setIsUpdatingLocation(false);
+            setIsLocationModalOpen(false);
+            toast({
+                title: 'Location Updated',
+                description: `Your location has been set to ${newLocation}.`,
+            });
+        }, 500);
+    }
     
     const LeafIcon = () => (
       <svg
@@ -48,7 +77,12 @@ export function AppHeader() {
         <h1 className="hidden md:block text-xl font-headline text-primary">Krishi SahAI</h1>
       </div>
 
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-2 md:gap-4">
+        <Button variant="ghost" className="hidden md:flex items-center gap-2 text-sm" onClick={() => setIsLocationModalOpen(true)}>
+            <MapPin className="h-4 w-4" />
+            <span className="truncate max-w-[150px]">{user?.location || translate('location', 'Location')}</span>
+        </Button>
+        
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -86,6 +120,10 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+             <DropdownMenuItem className="md:hidden" onClick={() => setIsLocationModalOpen(true)}>
+                <MapPin className="mr-2 h-4 w-4" />
+                <span>Change Location</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => toast({ title: translate('profilePageComingSoon', "Profile page coming soon!")})}>
               <User className="mr-2 h-4 w-4" />
               <span>{translate('profile', 'Profile')}</span>
@@ -102,6 +140,39 @@ export function AppHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+       <Dialog open={isLocationModalOpen} onOpenChange={setIsLocationModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Change Location</DialogTitle>
+                <DialogDescription>
+                    Update your location to get personalized weather forecasts and news.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="location-input" className="text-right">
+                        Location
+                    </Label>
+                    <Input
+                        id="location-input"
+                        value={newLocation}
+                        onChange={(e) => setNewLocation(e.target.value)}
+                        className="col-span-3"
+                        placeholder="e.g., Mumbai, India"
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsLocationModalOpen(false)}>Cancel</Button>
+                <Button onClick={handleLocationUpdate} disabled={isUpdatingLocation}>
+                    {isUpdatingLocation && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Changes
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+       </Dialog>
+
     </header>
   );
 }
