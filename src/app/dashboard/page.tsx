@@ -2,12 +2,20 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, Bot, Mic, ArrowRight, Sun, Wind, Droplets, Cloud, Bell, ClipboardList, MessageSquare, Loader2 } from "lucide-react";
+import { Stethoscope, Bot, Mic, ArrowRight, Sun, Wind, Droplets, Cloud, Bell, ClipboardList, MessageSquare, Loader2, Users, CalendarIcon, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { useLocalization } from "@/context/localization-context";
 import { useEffect, useState } from "react";
 import { getWeather, GetWeatherOutput } from "@/ai/flows/get-weather-flow";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const initialDiscussions = [
+  { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: 'https://picsum.photos/seed/user1/40', replies: 5, likes: 10, tag: 'Wheat', time: '2 hours ago' },
+  { id: 2, title: 'Question about monsoon soil preparation', author: 'Sita D.', avatar: 'https://picsum.photos/seed/user2/40', replies: 12, likes: 25, tag: 'Soil', time: '1 day ago' },
+];
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -15,6 +23,7 @@ export default function DashboardPage() {
   const [weather, setWeather] = useState<GetWeatherOutput | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     const currentHour = new Date().getHours();
@@ -150,23 +159,63 @@ export default function DashboardPage() {
             </Card>
         </section>
 
-        <section className="grid gap-6 md:grid-cols-2">
-            <Card>
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="lg:col-span-1">
                 <CardHeader>
-                    <CardTitle>{translate('recentFarmActivities', 'Recent Farm Activities')}</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <CalendarIcon className="h-6 w-6 text-primary"/>
+                        Activity Calendar
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {/* Placeholder for recent activities */}
-                    <p className="text-muted-foreground">{translate('noRecentActivities', 'No recent activities logged.')}</p>
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="rounded-md border"
+                    />
                 </CardContent>
             </Card>
-            <Card>
+            <Card className="lg:col-span-2">
                 <CardHeader>
-                    <CardTitle>{translate('alertsAndNews', 'Alerts & News')}</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="h-6 w-6 text-primary"/>
+                        Latest Community Discussions
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                     {/* Placeholder for alerts & news */}
-                    <p className="text-muted-foreground">{translate('noNewAlerts', 'No new alerts or news.')}</p>
+                <CardContent className="space-y-4">
+                    {initialDiscussions.map((d) => (
+                         <Card key={d.id} className="p-4">
+                            <div className="flex items-start gap-4">
+                            <Avatar>
+                                <AvatarImage src={d.avatar} data-ai-hint="person face" />
+                                <AvatarFallback>{d.author.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                                <Link href="/dashboard/community" className="font-semibold text-md hover:underline">{d.title}</Link>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <span>{d.author}</span>
+                                <span>&middot;</span>
+                                <span>{d.time}</span>
+                                </div>
+                                <Badge variant="secondary" className="mt-2">{d.tag}</Badge>
+                            </div>
+                            <div className="flex items-center gap-4 text-muted-foreground">
+                                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                    <ThumbsUp className="h-4 w-4" />
+                                    <span>{d.likes}</span>
+                                </Button>
+                                <div className="flex items-center gap-1">
+                                <MessageSquare className="h-4 w-4" />
+                                <span>{d.replies}</span>
+                                </div>
+                            </div>
+                            </div>
+                        </Card>
+                    ))}
+                     <Button variant="outline" className="w-full" asChild>
+                        <Link href="/dashboard/community">View All Discussions <ArrowRight className="ml-2 h-4 w-4"/></Link>
+                    </Button>
                 </CardContent>
             </Card>
         </section>

@@ -14,8 +14,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ClipboardList, PlusCircle } from 'lucide-react';
+import { ClipboardList, PlusCircle, Lightbulb, Loader2 } from 'lucide-react';
 import { useLocalization } from '@/context/localization-context';
+import { getFarmLogSuggestion, FarmLogSuggestionOutput } from '@/ai/flows/farm-log-suggestion-flow';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const logSchema = z.object({
   activity: z.string().min(1, 'Activity is required'),
@@ -38,21 +41,66 @@ export default function FarmLogPage() {
   const [logs, setLogs] = useState<LogEntry[]>(initialLogs);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const { translate } = useLocalization();
+  const [suggestion, setSuggestion] = useState<FarmLogSuggestionOutput | null>(null);
+  const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof logSchema>>({
     resolver: zodResolver(logSchema),
     defaultValues: { crop: '', notes: '', date: new Date() },
   });
 
-  function onSubmit(values: z.infer<typeof logSchema>) {
+  async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
     setLogs([newLog, ...logs]);
     form.reset({ crop: '', notes: '', date: new Date() });
     setIsFormVisible(false);
+
+    setIsSuggestionLoading(true);
+    try {
+      const suggestionResult = await getFarmLogSuggestion({
+        ...values,
+        date: values.date.toISOString(),
+      });
+      setSuggestion(suggestionResult);
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to get a suggestion. Please try again later.',
+      });
+    } finally {
+        setIsSuggestionLoading(false);
+    }
   }
 
   return (
     <div className="space-y-6">
+        <AlertDialog open={!!suggestion} onOpenChange={() => setSuggestion(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                        <Lightbulb className="text-primary"/>
+                        Next Step Suggestion
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {isSuggestionLoading ? (
+                            <div className="flex items-center gap-2 py-4">
+                                <Loader2 className="h-5 w-5 animate-spin"/>
+                                <span>Generating suggestion...</span>
+                            </div>
+                        ) : (
+                            suggestion?.suggestion
+                        )}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setSuggestion(null)}>Close</AlertDialogCancel>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
         <div className="flex items-center justify-between">
             <div className="space-y-1">
                 <h1 className="text-3xl font-headline flex items-center gap-3"><ClipboardList className="text-primary"/>{translate('farmActivityLog', 'Farm Activity Log')}</h1>
@@ -68,7 +116,7 @@ export default function FarmLogPage() {
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline">New Log Entry</CardTitle>
-                <CardDescription>Record a new activity on your farm.</CardDescription>
+                <CardDescription>Record a new activity on your farm. You'll get an AI-powered suggestion for what to do next.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -125,7 +173,10 @@ export default function FarmLogPage() {
                     
                     <div className="flex justify-end gap-2 pt-4">
                          <Button type="button" variant="outline" onClick={() => { setIsFormVisible(false); form.reset(); }}>{translate('cancel', 'Cancel')}</Button>
-                         <Button type="submit">Save Log</Button>
+                         <Button type="submit" disabled={isSuggestionLoading}>
+                            {isSuggestionLoading && <Loader2 className="animate-spin mr-2"/>}
+                            Save Log
+                        </Button>
                     </div>
                 </form>
                 </Form>
