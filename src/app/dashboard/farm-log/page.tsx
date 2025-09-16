@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,13 +14,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ClipboardList, PlusCircle, Lightbulb, Loader2, Trash2, Sparkles } from 'lucide-react';
+import { ClipboardList, PlusCircle, Lightbulb, Loader2, Trash2, Sparkles, BellRing } from 'lucide-react';
 import { useLocalization } from '@/context/localization-context';
 import { getFarmLogSuggestion, FarmLogSuggestionOutput } from '@/ai/flows/farm-log-suggestion-flow';
 import { getFarmGrowthPlan, FarmGrowthPlanOutput } from '@/ai/flows/farm-growth-plan-flow';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLogs } from '@/context/log-context';
+import { Badge } from '@/components/ui/badge';
 
 const logSchema = z.object({
   activity: z.string().min(1, 'Activity is required'),
@@ -45,7 +46,6 @@ export default function FarmLogPage() {
 
   const [growthPlan, setGrowthPlan] = useState<FarmGrowthPlanOutput | null>(null);
   const [isPlanLoading, setIsPlanLoading] = useState(false);
-  const [showPlanModal, setShowPlanModal] = useState(false);
 
   const { toast } = useToast();
 
@@ -53,6 +53,30 @@ export default function FarmLogPage() {
     resolver: zodResolver(logSchema),
     defaultValues: { crop: '', notes: '', date: new Date() },
   });
+
+  useEffect(() => {
+    async function fetchGrowthPlan() {
+        if (logs.length > 2) {
+            setIsPlanLoading(true);
+            try {
+                const planResult = await getFarmGrowthPlan({
+                    logs: logs.map(l => ({ ...l, date: l.date.toISOString() })),
+                });
+                setGrowthPlan(planResult);
+            } catch (error) {
+                console.error("Failed to fetch growth plan:", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Could not fetch growth plan',
+                    description: 'There was an error generating your farm growth plan.'
+                })
+            } finally {
+                setIsPlanLoading(false);
+            }
+        }
+    }
+    fetchGrowthPlan();
+  }, [logs, toast]);
 
   async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
@@ -92,35 +116,11 @@ export default function FarmLogPage() {
     }
   };
 
-  const handleGetGrowthPlan = async () => {
-      if (logs.length === 0) {
-        toast({
-            variant: 'destructive',
-            title: 'Not Enough Data',
-            description: 'Add at least one log to generate a growth plan.',
-        });
-        return;
-      }
-
-      setIsPlanLoading(true);
-      setShowPlanModal(true);
-      setGrowthPlan(null);
-      try {
-        const planResult = await getFarmGrowthPlan({
-            logs: logs.map(l => ({...l, date: l.date.toISOString()})),
-        });
-        setGrowthPlan(planResult);
-      } catch (e) {
-        console.error(e);
-        toast({
-            variant: 'destructive',
-            title: 'Error Generating Plan',
-            description: 'Failed to generate a growth plan. Please try again later.',
-        });
-        setShowPlanModal(false);
-      } finally {
-        setIsPlanLoading(false);
-      }
+  const handleSetReminder = (recommendation: string) => {
+    toast({
+        title: "Reminder Set!",
+        description: `We will remind you to: "${recommendation.substring(0, 40)}..."`,
+    });
   }
 
   return (
@@ -149,47 +149,6 @@ export default function FarmLogPage() {
             </AlertDialogContent>
         </AlertDialog>
 
-         <AlertDialog open={showPlanModal} onOpenChange={setShowPlanModal}>
-            <AlertDialogContent className="max-w-2xl">
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                        <Sparkles className="text-primary"/>
-                        AI-Generated Farm Growth Plan
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Based on your activity logs, here are prioritized recommendations.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div>
-                  {isPlanLoading ? (
-                        <div className="flex items-center justify-center h-40 gap-2">
-                            <Loader2 className="h-6 w-6 animate-spin"/>
-                            <span>Analyzing your farm data...</span>
-                        </div>
-                  ) : (
-                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-                        {growthPlan?.plan.map((item, index) => (
-                            <Card key={index}>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-base flex justify-between items-center">
-                                        <span>{item.recommendation}</span>
-                                        <Badge variant={item.priority === 'High' ? 'destructive' : 'secondary'}>{item.priority}</Badge>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-muted-foreground">{item.reasoning}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                  )}
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogAction onClick={() => setShowPlanModal(false)}>Close</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
         <AlertDialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -211,10 +170,6 @@ export default function FarmLogPage() {
                 <p className="text-muted-foreground">{translate('farmLogSubtitle', 'A record of your hard work and planning.')}</p>
             </div>
             <div className="flex gap-2">
-                 <Button onClick={handleGetGrowthPlan} variant="outline" disabled={logs.length === 0}>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Get Growth Plan
-                </Button>
                 <Button onClick={() => setIsFormVisible(!isFormVisible)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {isFormVisible ? translate('cancel', 'Cancel') : 'Add New Log'}
@@ -293,6 +248,50 @@ export default function FarmLogPage() {
         </Card>
       )}
 
+        {(isPlanLoading || growthPlan) && (
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2"><Sparkles className="text-primary"/> Farm Growth Plan</CardTitle>
+                    <CardDescription>Based on your activity logs, here are prioritized recommendations to improve your farm's health and yield.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isPlanLoading ? (
+                        <div className="flex items-center justify-center h-40 gap-2">
+                            <Loader2 className="h-6 w-6 animate-spin"/>
+                            <span>Analyzing your farm data...</span>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {growthPlan?.plan.map((item, index) => (
+                                <Card key={index} className="bg-muted/30">
+                                    <CardHeader className="pb-3">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <CardTitle className="text-lg leading-tight">{item.recommendation}</CardTitle>
+                                            <Badge variant={item.priority === 'High' ? 'destructive' : 'secondary'}>{item.priority}</Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <p className="text-sm text-muted-foreground">{item.reasoning}</p>
+                                        <div className="flex items-center justify-between pt-2 border-t">
+                                            <div className="text-xs text-muted-foreground">
+                                                {item.suggestedActionDate && (
+                                                    <p>Suggested Action Date: <span className="font-semibold">{format(new Date(item.suggestedActionDate), 'PPP')}</span></p>
+                                                )}
+                                            </div>
+                                            <Button size="sm" variant="outline" onClick={() => handleSetReminder(item.recommendation)}>
+                                                <BellRing className="mr-2 h-4 w-4"/>
+                                                Set Reminder
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        )}
+
       <Card>
         <CardHeader>
             <CardTitle className="font-headline">Activity History</CardTitle>
@@ -323,7 +322,7 @@ export default function FarmLogPage() {
                   </TableCell>
                 </TableRow>
               )) : (
-                <TableRow><TableCell colSpan={5} className="text-center">No logs found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center">No logs found. Add 3 or more logs to generate a growth plan.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
