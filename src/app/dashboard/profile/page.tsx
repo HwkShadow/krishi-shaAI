@@ -69,7 +69,7 @@ export default function ProfilePage() {
                     <Card>
                         <CardContent className="pt-6 flex flex-col items-center text-center">
                             <Avatar className="h-24 w-24 mb-4">
-                                <AvatarImage src={user.photoURL} />
+                                <AvatarImage src={user.photoURL ?? undefined} />
                                 <AvatarFallback className="text-3xl">{user.email.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <h2 className="text-xl font-bold">{user.name}</h2>

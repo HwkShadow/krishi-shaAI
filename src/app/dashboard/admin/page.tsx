@@ -54,7 +54,7 @@ export default function AdminPage() {
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
-                                                <AvatarImage src={u.photoURL} />
+                                                <AvatarImage src={u.photoURL ?? undefined} />
                                                 <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{u.name}</span>

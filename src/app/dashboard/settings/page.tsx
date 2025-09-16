@@ -144,7 +144,7 @@ export default function SettingsPage() {
     };
 
     const removeProfilePicture = () => {
-        updateUser({ photoURL: '' });
+        updateUser({ photoURL: null });
         toast({ title: 'Profile Picture Removed' });
         setIsPhotoDialogOpen(false);
     };
@@ -187,7 +187,7 @@ export default function SettingsPage() {
                                 <DialogTrigger asChild>
                                     <button className="relative group">
                                         <Avatar className="h-24 w-24">
-                                            <AvatarImage src={user.photoURL} />
+                                            <AvatarImage src={user.photoURL ?? undefined} />
                                             <AvatarFallback className="text-3xl">{user.email.charAt(0).toUpperCase()}</AvatarFallback>
                                         </Avatar>
                                         <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

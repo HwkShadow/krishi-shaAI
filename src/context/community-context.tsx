@@ -25,7 +25,7 @@ export type TranslatedContent = {
 export type Comment = {
   authorName: string;
   authorEmail: string;
-  authorAvatar: string;
+  authorAvatar: string | null;
   text: TranslatedContent;
   createdAt: string;
 };
@@ -35,7 +35,7 @@ export type Discussion = {
   title: TranslatedContent;
   authorName: string;
   authorEmail: string;
-  authorAvatar: string;
+  authorAvatar: string | null;
   createdAt: string;
   tag?: string;
   comments: Comment[];
@@ -87,7 +87,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         },
         authorName: user.name,
         authorEmail: user.email,
-        authorAvatar: `https://picsum.photos/seed/${user.email}/40`,
+        authorAvatar: user.photoURL ?? `https://picsum.photos/seed/${user.email}/40`,
         createdAt: new Date().toISOString(),
         tag: data.tag,
         comments: [],
@@ -115,7 +115,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         const newComment: Comment = {
             authorName: user.name,
             authorEmail: user.email,
-            authorAvatar: `https://picsum.photos/seed/${user.email}/40`,
+            authorAvatar: user.photoURL ?? `https://picsum.photos/seed/${user.email}/40`,
             text: {
                 en: translatedText.en,
                 hi: translatedText.hi,

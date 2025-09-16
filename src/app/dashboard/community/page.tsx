@@ -156,7 +156,7 @@ export default function CommunityPage() {
             <CardHeader>
                 <div className="flex items-start gap-4">
                   <Avatar>
-                    <AvatarImage src={d.authorAvatar} />
+                    <AvatarImage src={d.authorAvatar ?? undefined} />
                     <AvatarFallback>{d.authorName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -220,7 +220,7 @@ export default function CommunityPage() {
                     {d.comments.map((comment, index) => (
                         <div key={index} className="flex items-start gap-3 bg-muted/50 p-3 rounded-lg">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={comment.authorAvatar} />
+                                <AvatarImage src={comment.authorAvatar ?? undefined} />
                                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
@@ -265,7 +265,7 @@ export default function CommunityPage() {
                     ))}
                     <div className="flex items-center gap-2 pt-2">
                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={user?.photoURL} />
+                            <AvatarImage src={user?.photoURL ?? undefined} />
                             <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <Input 

@@ -4,6 +4,18 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { 
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    onSnapshot,
+    collection,
+    query,
+    orderBy
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
 
 export type User = {
   uid: string;
@@ -12,7 +24,7 @@ export type User = {
   location: string;
   isAdmin: boolean;
   memberSince: string;
-  photoURL?: string;
+  photoURL?: string | null;
 }
 
 type AuthContextType = {
@@ -23,7 +35,7 @@ type AuthContextType = {
   logout: () => void;
   forgotPassword: (email: string) => void;
   updateLocation: (newLocation: string) => void;
-  updateUser: (data: Partial<User>) => void;
+  updateUser: (data: Partial<Omit<User, 'uid' | 'email' | 'isAdmin'>>) => void;
   isLoading: boolean;
   allUsers: User[];
 };
@@ -32,9 +44,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock user data for demonstration
 const initialUsers: User[] = [
-  { uid: '1', name: 'Admin User', email: 'admin@example.com', location: 'Delhi, India', isAdmin: true, memberSince: '2023-01-15T10:00:00Z' },
-  { uid: '2', name: 'Ramesh Kumar', email: 'ramesh@example.com', location: 'Punjab, India', isAdmin: false, memberSince: '2023-02-20T11:30:00Z' },
-  { uid: '3', name: 'Sita Devi', email: 'sita@example.com', location: 'Kerala, India', isAdmin: false, memberSince: '2023-03-10T09:00:00Z' },
+  { uid: '1', name: 'Admin User', email: 'admin@example.com', location: 'Delhi, India', isAdmin: true, memberSince: '2023-01-15T10:00:00Z', photoURL: null },
+  { uid: '2', name: 'Ramesh Kumar', email: 'ramesh@example.com', location: 'Punjab, India', isAdmin: false, memberSince: '2023-02-20T11:30:00Z', photoURL: 'https://picsum.photos/seed/ramesh/100' },
+  { uid: '3', name: 'Sita Devi', email: 'sita@example.com', location: 'Kerala, India', isAdmin: false, memberSince: '2023-03-10T09:00:00Z', photoURL: 'https://picsum.photos/seed/sita/100' },
 ];
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -61,6 +73,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (user?.isAdmin) {
+      const q = query(collection(db, "users"), orderBy("memberSince", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const usersFromDb = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
+        // Merge with initial mock users for demo purposes
+        const combinedUsers = [...initialUsers];
+        usersFromDb.forEach(dbUser => {
+          const index = combinedUsers.findIndex(u => u.email === dbUser.email);
+          if (index !== -1) {
+            combinedUsers[index] = { ...combinedUsers[index], ...dbUser };
+          } else {
+            combinedUsers.push(dbUser);
+          }
+        });
+        setAllUsers(combinedUsers);
+      });
+      return () => unsubscribe();
+    } else if (user) {
+        // if not admin, just use local storage
+         const storedUsers = localStorage.getItem('appUsers');
+         const users = storedUsers ? JSON.parse(storedUsers) : initialUsers;
+         setAllUsers(users);
+    }
+  }, [user]);
+
 
   const persistUsers = (users: User[]) => {
       setAllUsers(users);
@@ -90,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       location,
       isAdmin: email === ADMIN_EMAIL,
       memberSince: new Date().toISOString(),
+      photoURL: null,
     };
     persistUsers([...allUsers, newUser]);
     setUser(newUser);
@@ -121,12 +161,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUser = (data: Partial<User>) => {
+  const updateUser = (data: Partial<Omit<User, 'uid' | 'email' | 'isAdmin'>>) => {
       if(user) {
           const updatedUser = {...user, ...data };
           setUser(updatedUser);
           const updatedUsers = allUsers.map(u => u.uid === user.uid ? updatedUser : u);
           persistUsers(updatedUsers);
+
+          // Also update in Firestore for persistence across sessions for admins
+          if(updatedUser.isAdmin) {
+            const userRef = doc(db, "users", updatedUser.uid);
+            setDoc(userRef, updatedUser, { merge: true });
+          }
       }
   }
 
