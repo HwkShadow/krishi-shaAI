@@ -54,6 +54,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const { translate } = useLocalization();
   const { toast } = useToast();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [isForgotPassDialogOpen, setIsForgotPassDialogOpen] = useState(false);
 
   const formSchema = mode === 'login' ? loginSchema : signupSchema;
   
@@ -134,7 +135,8 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }
 
-  const handleForgotPassword = () => {
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
     if(!forgotPasswordEmail) {
         toast({
             variant: 'destructive',
@@ -145,6 +147,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
     forgotPassword(forgotPasswordEmail);
     setForgotPasswordEmail('');
+    setIsForgotPassDialogOpen(false);
   }
 
   const LeafIcon = () => (
@@ -226,7 +229,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                       <div className="flex items-center justify-between">
                          <FormLabel>{translate('password', 'Password')}</FormLabel>
                          {mode === 'login' && (
-                            <AlertDialog>
+                            <AlertDialog open={isForgotPassDialogOpen} onOpenChange={setIsForgotPassDialogOpen}>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="link" type="button" className="p-0 h-auto text-xs text-primary">Forgot password?</Button>
                                 </AlertDialogTrigger>
