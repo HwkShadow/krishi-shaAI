@@ -9,10 +9,21 @@ import { User, Mail, MapPin, Loader2, ClipboardList, Users2, CalendarDays, Setti
 import { useLogs } from '@/context/log-context';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { useCommunity } from '@/context/community-context';
 
 export default function ProfilePage() {
     const { user } = useAuth();
     const { logs } = useLogs();
+    const { discussions } = useCommunity();
+
+    const communityPostsCount = React.useMemo(() => {
+        if (!user) return 0;
+        const userDiscussions = discussions.filter(d => d.authorEmail === user.email).length;
+        const userComments = discussions.reduce((acc, d) => {
+            return acc + d.comments.filter(c => c.authorEmail === user.email).length;
+        }, 0);
+        return userDiscussions + userComments;
+    }, [discussions, user]);
 
     if (!user) {
         return (
@@ -75,7 +86,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent className="grid sm:grid-cols-2 gap-4">
                         <StatCard icon={ClipboardList} label="Farm Logs" value={logs.length} />
-                        <StatCard icon={Users2} label="Community Posts" value={4} />
+                        <StatCard icon={Users2} label="Community Posts" value={communityPostsCount} />
                         <StatCard icon={CalendarDays} label="Member Since" value={user.memberSince ? format(new Date(user.memberSince), 'MMMM yyyy') : 'N/A'} />
                     </CardContent>
                 </Card>
