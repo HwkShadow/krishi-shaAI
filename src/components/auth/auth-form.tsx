@@ -166,19 +166,15 @@ export function AuthForm({ mode }: AuthFormProps) {
   );
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <div className="grid lg:grid-cols-2 max-w-6xl w-full">
-        <div className="hidden lg:flex flex-col items-center justify-center bg-primary/10 rounded-l-lg p-8 text-center">
-            <Image 
-                src="https://picsum.photos/seed/agriculture/800/1000"
-                width={800}
-                height={1000}
-                alt="Farmer in a field"
-                className="w-full h-full object-cover rounded-md"
-                data-ai-hint="agriculture technology"
-            />
-        </div>
-        <Card className="rounded-r-lg rounded-l-lg lg:rounded-l-none border-l-0">
+    <div className="relative flex min-h-screen w-full items-center justify-center p-4">
+      <Image
+        src="https://picsum.photos/seed/farm/1920/1080"
+        alt="Farmer in a field"
+        fill
+        className="object-cover -z-10 brightness-75"
+        data-ai-hint="farm field"
+      />
+      <Card className="w-full max-w-md bg-background/80 backdrop-blur-sm">
           <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-2 mb-4">
                 <LeafIcon />
@@ -232,7 +228,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                          {mode === 'login' && (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="link" type="button" className="p-0 h-auto text-xs">Forgot password?</Button>
+                                    <Button variant="link" type="button" className="p-0 h-auto text-xs text-primary">Forgot password?</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -319,7 +315,6 @@ export function AuthForm({ mode }: AuthFormProps) {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
