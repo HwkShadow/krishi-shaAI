@@ -23,6 +23,7 @@ import Image from 'next/image';
 import { useLocalization } from '@/context/localization-context';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
