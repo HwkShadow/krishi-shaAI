@@ -14,7 +14,8 @@ import {
     query,
     orderBy
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 
 export type User = {
@@ -33,7 +34,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, location: string) => Promise<void>;
   logout: () => void;
-  forgotPassword: (email: string) => void;
+  forgotPassword: (email: string) => Promise<void>;
   updateLocation: (newLocation: string) => void;
   updateUser: (data: Partial<Omit<User, 'uid' | 'email' | 'isAdmin'>>) => void;
   isLoading: boolean;
@@ -143,13 +144,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/");
   };
   
-  const forgotPassword = (email: string) => {
-    // In a real app, this would trigger a Firebase password reset email
-    console.log(`Password reset requested for ${email}`);
-    toast({
-        title: "Password Reset",
-        description: `If an account exists for ${email}, a password reset link has been sent.`,
-    });
+  const forgotPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+          title: "Password Reset Email Sent",
+          description: `If an account exists for ${email}, a password reset link has been sent to it.`,
+      });
+    } catch (error: any) {
+       toast({
+          variant: "destructive",
+          title: "Password Reset Failed",
+          description: error.message || "An unexpected error occurred.",
+      });
+    }
   }
 
   const updateLocation = (newLocation: string) => {
