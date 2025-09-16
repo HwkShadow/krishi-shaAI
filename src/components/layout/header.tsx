@@ -24,6 +24,8 @@ import { Label } from '../ui/label';
 import { useSidebar } from '../ui/sidebar';
 import Link from 'next/link';
 
+const locationRegex = /^[^,]+,\s*[^,]+$/;
+
 export function AppHeader() {
     const { logout, user, updateLocation } = useAuth();
     const { toggleSidebar } = useSidebar();
@@ -39,6 +41,14 @@ export function AppHeader() {
                 variant: 'destructive',
                 title: 'Invalid Location',
                 description: 'Please enter a valid location.',
+            });
+            return;
+        }
+        if (!locationRegex.test(newLocation)) {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid Format',
+                description: 'Location must be in "City, Country" format (e.g., Vellore, India).',
             });
             return;
         }
@@ -146,7 +156,7 @@ export function AppHeader() {
                         value={newLocation}
                         onChange={(e) => setNewLocation(e.target.value)}
                         className="col-span-3"
-                        placeholder="e.g., Mumbai, India"
+                        placeholder="e.g., Vellore, India"
                     />
                 </div>
             </div>
@@ -163,3 +173,5 @@ export function AppHeader() {
     </header>
   );
 }
+
+    

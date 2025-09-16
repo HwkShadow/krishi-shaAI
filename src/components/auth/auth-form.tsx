@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -34,7 +35,11 @@ const signupSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  location: z.string().min(1, { message: 'Location is required.' }),
+  location: z.string()
+    .min(1, { message: 'Location is required.' })
+    .refine(value => /^[^,]+,\s*[^,]+$/.test(value), {
+      message: 'Location must be in "City, Country" format (e.g., Vellore, India).',
+    }),
 });
 
 type AuthFormProps = {
@@ -228,7 +233,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                         <FormControl>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="e.g., Punjab, India" {...field} className="pl-10" />
+                                <Input placeholder="e.g., Vellore, India" {...field} className="pl-10" />
                             </div>
                         </FormControl>
                         <FormMessage />
@@ -265,3 +270,5 @@ export function AuthForm({ mode }: AuthFormProps) {
     </div>
   );
 }
+
+    
