@@ -17,6 +17,7 @@ import { useLogs } from '@/context/log-context';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { format } from 'date-fns';
 
 const profileSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -137,7 +138,7 @@ export default function ProfilePage() {
                             <CardContent className="space-y-3">
                             <StatCard icon={ClipboardList} label="Farm Logs" value={logs.length} />
                             <StatCard icon={Users2} label="Community Posts" value={4} />
-                            <StatCard icon={CalendarDays} label="Member Since" value="July 2024" />
+                            <StatCard icon={CalendarDays} label="Member Since" value={user.memberSince ? format(new Date(user.memberSince), 'MMMM yyyy') : 'N/A'} />
                             </CardContent>
                         </Card>
                     </div>
@@ -279,5 +280,3 @@ export default function ProfilePage() {
         </>
     );
 }
-
-    

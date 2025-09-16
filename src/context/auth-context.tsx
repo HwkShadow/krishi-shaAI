@@ -2,12 +2,14 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 type User = {
   name: string;
   email: string;
   location: string | null;
   isAdmin: boolean;
+  memberSince: string;
 }
 
 type AuthContextType = {
@@ -51,16 +53,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (email: string, location?: string, redirectUrl: string = "/dashboard") => {
     const isAdmin = email === ADMIN_EMAIL;
     const name = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    const userPayload: User = { name, email, location: location || 'Punjab, India', isAdmin };
+    
+    // Check if user already exists to preserve memberSince date
+    const existingUsers: User[] = JSON.parse(localStorage.getItem("allUsers") || "[]");
+    const existingUser = existingUsers.find((u: User) => u.email === email);
+
+    const memberSince = existingUser ? existingUser.memberSince : new Date().toISOString();
+
+    const userPayload: User = { 
+        name, 
+        email, 
+        location: location || 'Punjab, India', 
+        isAdmin,
+        memberSince
+    };
 
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("user", JSON.stringify(userPayload));
 
-    // Update allUsers list
-    const existingUsers = JSON.parse(localStorage.getItem("allUsers") || "[]");
-    const userExists = existingUsers.some((u: User) => u.email === email);
-    if (!userExists) {
-        const newAllUsers = [...existingUsers, { name: userPayload.name, email: userPayload.email, location: userPayload.location }];
+    if (!existingUser) {
+        const newAllUsers = [...existingUsers, { name: userPayload.name, email: userPayload.email, location: userPayload.location, memberSince: userPayload.memberSince }];
         localStorage.setItem("allUsers", JSON.stringify(newAllUsers));
         setAllUsers(newAllUsers);
     }

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { format } from "date-fns";
 
 export default function AdminPage() {
     const { user, allUsers, isLoading } = useAuth();
@@ -43,6 +44,7 @@ export default function AdminPage() {
                                 <TableHead>User</TableHead>
                                 <TableHead>Email</TableHead>
                                 <TableHead>Location</TableHead>
+                                <TableHead>Member Since</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -59,6 +61,7 @@ export default function AdminPage() {
                                     </TableCell>
                                     <TableCell>{u.email}</TableCell>
                                     <TableCell>{u.location}</TableCell>
+                                    <TableCell>{u.memberSince ? format(new Date(u.memberSince), 'PPP') : 'N/A'}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
