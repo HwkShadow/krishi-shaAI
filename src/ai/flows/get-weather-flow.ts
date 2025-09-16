@@ -24,7 +24,7 @@ const GetWeatherOutputSchema = z.object({
 });
 export type GetWeatherOutput = z.infer<typeof GetWeatherOutputSchema>;
 
-export async function getWeather(input: GetWeatherInput): Promise<GetWeatherOutput> {
+export async function getWeather(input: GetWeatherInput): Promise<GetWeatherOutput | null> {
   return getWeatherFlow(input);
 }
 
@@ -32,13 +32,14 @@ const getWeatherFlow = ai.defineFlow(
   {
     name: 'getWeatherFlow',
     inputSchema: GetWeatherInputSchema,
-    outputSchema: GetWeatherOutputSchema,
+    outputSchema: z.union([GetWeatherOutputSchema, z.null()]),
   },
   async (input) => {
     const apiKey = process.env.OPENWEATHER_API_KEY;
 
     if (!apiKey) {
-      throw new Error('OpenWeather API key is not configured.');
+      console.warn('OpenWeather API key is not configured. Weather data will not be available. Please add OPENWEATHER_API_KEY to your .env file.');
+      return null;
     }
     
     // 1. Geocode location to get coordinates
@@ -49,17 +50,19 @@ const getWeatherFlow = ai.defineFlow(
     try {
       const geoResponse = await fetch(geoUrl);
       if (!geoResponse.ok) {
-        throw new Error(`Failed to geocode location: ${geoResponse.statusText}`);
+        console.error(`Failed to geocode location: ${geoResponse.statusText}`);
+        return null;
       }
       const geoData = await geoResponse.json();
       if (!geoData || geoData.length === 0) {
-        throw new Error(`Could not find coordinates for location: ${input.location}`);
+        console.error(`Could not find coordinates for location: ${input.location}`);
+        return null;
       }
       lat = geoData[0].lat;
       lon = geoData[0].lon;
     } catch (e: any) {
         console.error('Geocoding API error:', e.message);
-        throw new Error('Failed to retrieve location coordinates. Please check the location name.');
+        return null;
     }
 
     // 2. Fetch weather using coordinates
@@ -68,7 +71,8 @@ const getWeatherFlow = ai.defineFlow(
     try {
         const weatherResponse = await fetch(weatherUrl);
         if (!weatherResponse.ok) {
-            throw new Error(`Failed to fetch weather data: ${weatherResponse.statusText}`);
+            console.error(`Failed to fetch weather data: ${weatherResponse.statusText}`);
+            return null;
         }
         const weatherData = await weatherResponse.json();
         
@@ -81,7 +85,7 @@ const getWeatherFlow = ai.defineFlow(
         };
     } catch (e: any) {
         console.error('Weather API error:', e.message);
-        throw new Error('Failed to retrieve weather data.');
+        return null;
     }
   }
 );
