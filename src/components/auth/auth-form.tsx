@@ -22,6 +22,7 @@ import { Loader2, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useLocalization } from '@/context/localization-context';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -40,11 +41,12 @@ type AuthFormProps = {
 };
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const { login, signup } = useAuth();
+  const { login, signup, forgotPassword } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { translate } = useLocalization();
   const { toast } = useToast();
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
 
   const formSchema = mode === 'login' ? loginSchema : signupSchema;
   
@@ -70,18 +72,8 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
     } catch (e: any) {
         let friendlyMessage = "An unexpected error occurred.";
-        if (e.code) {
-            switch(e.code) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                    friendlyMessage = "Invalid credentials. Please check your email and password.";
-                    break;
-                case 'auth/email-already-in-use':
-                    friendlyMessage = "This email address is already in use by another account.";
-                    break;
-                default:
-                    friendlyMessage = `Authentication failed: ${e.code}`;
-            }
+        if (e.message) {
+            friendlyMessage = e.message;
         }
       setError(friendlyMessage);
       toast({
@@ -92,6 +84,19 @@ export function AuthForm({ mode }: AuthFormProps) {
     } finally {
         setIsLoading(false);
     }
+  }
+
+  const handleForgotPassword = () => {
+    if(!forgotPasswordEmail) {
+        toast({
+            variant: 'destructive',
+            title: 'Email Required',
+            description: 'Please enter your email address.',
+        });
+        return;
+    }
+    forgotPassword(forgotPasswordEmail);
+    setForgotPasswordEmail('');
   }
 
   const LeafIcon = () => (
@@ -169,12 +174,42 @@ export function AuthForm({ mode }: AuthFormProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
+                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{translate('password', 'Password')}</FormLabel>
+                      <div className="flex items-center justify-between">
+                         <FormLabel>{translate('password', 'Password')}</FormLabel>
+                         {mode === 'login' && (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="link" type="button" className="p-0 h-auto text-xs">Forgot password?</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Forgot Password?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Enter your email address and we'll send you a link to reset your password.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="forgot-email">Email</Label>
+                                        <Input
+                                            id="forgot-email"
+                                            placeholder="name@example.com"
+                                            value={forgotPasswordEmail}
+                                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                                        />
+                                    </div>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleForgotPassword}>Submit</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                         )}
+                      </div>
                       <FormControl>
                         <Input type="password" placeholder="********" {...field} />
                       </FormControl>
