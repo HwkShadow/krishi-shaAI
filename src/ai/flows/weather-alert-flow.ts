@@ -10,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getWeather, GetWeatherOutputSchema } from './get-weather-flow';
+import { getWeather } from './get-weather-flow';
 
 const GetWeatherAlertsInputSchema = z.object({
   location: z.string().describe('The location to fetch weather for (e.g., city, state).'),
@@ -34,6 +34,14 @@ export type GetWeatherAlertsOutput = z.infer<typeof GetWeatherAlertsOutputSchema
 export async function getWeatherAlerts(input: GetWeatherAlertsInput): Promise<GetWeatherAlertsOutput> {
   return weatherAlertFlow(input);
 }
+
+// Define the schema for the weather data output, which will be used in the prompt context
+const GetWeatherOutputSchema = z.object({
+    temperature: z.number().describe('The current temperature in Celsius.'),
+    condition: z.string().describe('The current weather condition (e.g., Sunny, Cloudy).'),
+    wind: z.number().describe('The wind speed in km/h.'),
+    humidity: z.number().describe('The humidity percentage.'),
+});
 
 // Define a type for the context passed to the prompt
 const WeatherAlertPromptContext = GetWeatherOutputSchema.extend({
