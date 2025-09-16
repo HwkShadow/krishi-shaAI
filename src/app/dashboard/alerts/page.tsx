@@ -1,57 +1,87 @@
 'use client';
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLocalization } from "@/context/localization-context";
-import { Bell, CloudRain, Bug } from "lucide-react";
+import { Bell, CloudRain, Bug, Sun, Wind, Loader2 } from "lucide-react";
+import { getWeatherAlerts, WeatherAlert } from "@/ai/flows/weather-alert-flow";
+import { useAuth } from "@/context/auth-context";
+import { Card, CardContent } from "@/components/ui/card";
 
-const alerts = [
-  { 
-    id: 1, 
-    type: 'weather',
-    title: 'Heavy Rain Expected',
-    description: 'Expect heavy rainfall in your area in the next 48 hours. Ensure proper drainage for your fields.',
-    time: '2 hours ago',
-    Icon: CloudRain
-  },
-  { 
-    id: 2, 
-    type: 'pest',
-    title: 'Pest Outbreak: Locusts',
-    description: 'A locust swarm has been reported in a neighboring district. Be vigilant and ready to take protective measures.',
-    time: '1 day ago',
-    Icon: Bug
-  },
-  { 
-    id: 3, 
-    type: 'weather',
-    title: 'Heatwave Warning',
-    description: 'Temperatures are expected to rise significantly. Ensure adequate irrigation for your crops.',
-    time: '3 days ago',
-    Icon: CloudRain
-  },
-];
+const iconMap: { [key: string]: React.ElementType } = {
+  'weather': CloudRain,
+  'pest': Bug,
+  'heat': Sun,
+  'wind': Wind,
+  'default': Bell,
+};
 
 export default function AlertsPage() {
   const { translate } = useLocalization();
+  const { user } = useAuth();
+  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAlerts() {
+      if (!user?.location) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const result = await getWeatherAlerts({ location: user.location });
+        setAlerts(result.alerts);
+      } catch (error) {
+        console.error("Failed to fetch alerts:", error);
+        setAlerts([]); // Clear alerts on error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchAlerts();
+  }, [user?.location]);
+
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-3xl font-headline flex items-center gap-3"><Bell className="text-primary"/> {translate('proactiveAlerts', 'Proactive Alerts')}</h1>
         <p className="text-muted-foreground">{translate('alertsSubtitle', 'Timely warnings to help you stay one step ahead.')}</p>
       </div>
-      <div className="space-y-4">
-        {alerts.map((alert) => (
-          <Alert key={alert.id} variant={alert.type === 'pest' ? 'destructive' : 'default'}>
-            <alert.Icon className="h-4 w-4" />
-            <div className="flex justify-between items-start w-full">
-                <div>
-                    <AlertTitle>{alert.title}</AlertTitle>
-                    <AlertDescription>{alert.description}</AlertDescription>
-                </div>
-                <span className="text-xs text-muted-foreground flex-shrink-0 ml-4">{alert.time}</span>
-            </div>
-          </Alert>
-        ))}
-      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : alerts.length > 0 ? (
+        <div className="space-y-4">
+          {alerts.map((alert, index) => {
+             const Icon = iconMap[alert.type] || iconMap.default;
+             return (
+                <Alert key={index} variant={alert.severity === 'high' ? 'destructive' : 'default'}>
+                    <Icon className="h-4 w-4" />
+                    <div className="flex justify-between items-start w-full">
+                        <div>
+                            <AlertTitle>{alert.title}</AlertTitle>
+                            <AlertDescription>{alert.description}</AlertDescription>
+                        </div>
+                    </div>
+                </Alert>
+             )
+          })}
+        </div>
+      ) : (
+        <Card className="flex flex-col items-center justify-center h-64 text-center">
+            <CardContent className="pt-6">
+                <Bell className="h-12 w-12 mx-auto text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium">No Alerts Right Now</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    We couldn't find any critical alerts for your location. Check back later.
+                </p>
+            </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
