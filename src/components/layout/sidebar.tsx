@@ -19,6 +19,7 @@ import {
   Settings,
   LifeBuoy,
   User,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -88,6 +89,21 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+           {user?.isAdmin && (
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/dashboard/admin'}
+                tooltip="Admin"
+                className="h-10 justify-start"
+              >
+                <Link href="/dashboard/admin">
+                  <Shield className="h-5 w-5" />
+                  <span>Admin</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+           )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="border-t-0 p-2">
