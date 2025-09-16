@@ -10,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getWeather, GetWeatherOutput } from './get-weather-flow';
+import { getWeather, GetWeatherOutputSchema } from './get-weather-flow';
 
 const GetWeatherAlertsInputSchema = z.object({
   location: z.string().describe('The location to fetch weather for (e.g., city, state).'),
@@ -36,7 +36,7 @@ export async function getWeatherAlerts(input: GetWeatherAlertsInput): Promise<Ge
 }
 
 // Define a type for the context passed to the prompt
-const WeatherAlertPromptContext = GetWeatherOutput.extend({
+const WeatherAlertPromptContext = GetWeatherOutputSchema.extend({
     location: z.string(),
 });
 

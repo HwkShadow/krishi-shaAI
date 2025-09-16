@@ -16,7 +16,7 @@ const GetWeatherInputSchema = z.object({
 });
 export type GetWeatherInput = z.infer<typeof GetWeatherInputSchema>;
 
-const GetWeatherOutputSchema = z.object({
+export const GetWeatherOutputSchema = z.object({
     temperature: z.number().describe('The current temperature in Celsius.'),
     condition: z.string().describe('The current weather condition (e.g., Sunny, Cloudy).'),
     wind: z.number().describe('The wind speed in km/h.'),

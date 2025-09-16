@@ -12,7 +12,7 @@ const iconMap: { [key: string]: React.ElementType } = {
   'pest': Bug,
   'heat': Sun,
   'wind': Wind,
-  'default': Bell,
+  'other': Bell,
 };
 
 export default function AlertsPage() {
@@ -57,9 +57,9 @@ export default function AlertsPage() {
       ) : alerts.length > 0 ? (
         <div className="space-y-4">
           {alerts.map((alert, index) => {
-             const Icon = iconMap[alert.type] || iconMap.default;
+             const Icon = iconMap[alert.type] || iconMap.other;
              return (
-                <Alert key={index} variant={alert.severity === 'high' ? 'destructive' : 'default'}>
+                <Alert key={index} variant={alert.severity === 'high' ? 'destructive' : undefined}>
                     <Icon className="h-4 w-4" />
                     <div className="flex justify-between items-start w-full">
                         <div>
