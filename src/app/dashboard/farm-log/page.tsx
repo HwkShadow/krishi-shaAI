@@ -14,9 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ClipboardList, PlusCircle, Lightbulb, Loader2, Trash2 } from 'lucide-react';
+import { ClipboardList, PlusCircle, Lightbulb, Loader2, Trash2, Sparkles } from 'lucide-react';
 import { useLocalization } from '@/context/localization-context';
 import { getFarmLogSuggestion, FarmLogSuggestionOutput } from '@/ai/flows/farm-log-suggestion-flow';
+import { getFarmGrowthPlan, FarmGrowthPlanOutput } from '@/ai/flows/farm-growth-plan-flow';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLogs } from '@/context/log-context';
@@ -41,6 +42,11 @@ export default function FarmLogPage() {
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   const [showSuggestionModal, setShowSuggestionModal] = useState(false);
   const [logToDelete, setLogToDelete] = useState<string | null>(null);
+
+  const [growthPlan, setGrowthPlan] = useState<FarmGrowthPlanOutput | null>(null);
+  const [isPlanLoading, setIsPlanLoading] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof logSchema>>({
@@ -86,6 +92,37 @@ export default function FarmLogPage() {
     }
   };
 
+  const handleGetGrowthPlan = async () => {
+      if (logs.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Not Enough Data',
+            description: 'Add at least one log to generate a growth plan.',
+        });
+        return;
+      }
+
+      setIsPlanLoading(true);
+      setShowPlanModal(true);
+      setGrowthPlan(null);
+      try {
+        const planResult = await getFarmGrowthPlan({
+            logs: logs.map(l => ({...l, date: l.date.toISOString()})),
+        });
+        setGrowthPlan(planResult);
+      } catch (e) {
+        console.error(e);
+        toast({
+            variant: 'destructive',
+            title: 'Error Generating Plan',
+            description: 'Failed to generate a growth plan. Please try again later.',
+        });
+        setShowPlanModal(false);
+      } finally {
+        setIsPlanLoading(false);
+      }
+  }
+
   return (
     <div className="space-y-6">
         <AlertDialog open={showSuggestionModal} onOpenChange={setShowSuggestionModal}>
@@ -112,6 +149,47 @@ export default function FarmLogPage() {
             </AlertDialogContent>
         </AlertDialog>
 
+         <AlertDialog open={showPlanModal} onOpenChange={setShowPlanModal}>
+            <AlertDialogContent className="max-w-2xl">
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                        <Sparkles className="text-primary"/>
+                        AI-Generated Farm Growth Plan
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Based on your activity logs, here are prioritized recommendations.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div>
+                  {isPlanLoading ? (
+                        <div className="flex items-center justify-center h-40 gap-2">
+                            <Loader2 className="h-6 w-6 animate-spin"/>
+                            <span>Analyzing your farm data...</span>
+                        </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
+                        {growthPlan?.plan.map((item, index) => (
+                            <Card key={index}>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base flex justify-between items-center">
+                                        <span>{item.recommendation}</span>
+                                        <Badge variant={item.priority === 'High' ? 'destructive' : 'secondary'}>{item.priority}</Badge>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground">{item.reasoning}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setShowPlanModal(false)}>Close</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
         <AlertDialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -132,10 +210,16 @@ export default function FarmLogPage() {
                 <h1 className="text-3xl font-headline flex items-center gap-3"><ClipboardList className="text-primary"/>{translate('farmActivityLog', 'Farm Activity Log')}</h1>
                 <p className="text-muted-foreground">{translate('farmLogSubtitle', 'A record of your hard work and planning.')}</p>
             </div>
-            <Button onClick={() => setIsFormVisible(!isFormVisible)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {isFormVisible ? translate('cancel', 'Cancel') : 'Add New Log'}
-            </Button>
+            <div className="flex gap-2">
+                 <Button onClick={handleGetGrowthPlan} variant="outline" disabled={logs.length === 0}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Get Growth Plan
+                </Button>
+                <Button onClick={() => setIsFormVisible(!isFormVisible)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {isFormVisible ? translate('cancel', 'Cancel') : 'Add New Log'}
+                </Button>
+            </div>
         </div>
       
       {isFormVisible && (

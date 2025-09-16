@@ -6,6 +6,7 @@ import {
     addDoc, 
     doc, 
     updateDoc,
+    deleteDoc,
     arrayUnion,
     arrayRemove,
     query,
@@ -40,12 +41,35 @@ export const addDiscussionToFirestore = async (discussion: any) => {
     return await addDoc(discussionsCollection, discussion);
 }
 
+export const deleteDiscussionFromFirestore = async (discussionId: string) => {
+    const discussionRef = doc(db, "discussions", discussionId);
+    return await deleteDoc(discussionRef);
+}
+
+export const updateDiscussionInFirestore = async (discussionId: string, updates: any) => {
+    const discussionRef = doc(db, "discussions", discussionId);
+    return await updateDoc(discussionRef, updates);
+}
+
 export const addCommentToFirestore = async (discussionId: string, comment: any) => {
     const discussionRef = doc(db, "discussions", discussionId);
     return await updateDoc(discussionRef, {
         comments: arrayUnion(comment)
     });
 }
+
+export const deleteCommentFromFirestore = async (discussionId: string, comment: any) => {
+    const discussionRef = doc(db, "discussions", discussionId);
+    return await updateDoc(discussionRef, {
+        comments: arrayRemove(comment)
+    });
+}
+
+export const updateCommentInFirestore = async (discussionId: string, comments: any[]) => {
+    const discussionRef = doc(db, "discussions", discussionId);
+    return await updateDoc(discussionRef, { comments });
+};
+
 
 export const toggleLikeInFirestore = async (discussionId: string, userId: string, isLiked: boolean) => {
     const discussionRef = doc(db, "discussions", discussionId);

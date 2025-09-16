@@ -3,11 +3,21 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useAuth } from "./auth-context";
-import { addDiscussionToFirestore, addCommentToFirestore, toggleLikeInFirestore, getDiscussions } from "@/lib/firebase";
+import { 
+    addDiscussionToFirestore, 
+    addCommentToFirestore, 
+    toggleLikeInFirestore, 
+    getDiscussions,
+    deleteDiscussionFromFirestore,
+    updateDiscussionInFirestore,
+    updateCommentInFirestore,
+    deleteCommentFromFirestore,
+} from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 export type Comment = {
   authorName: string;
+  authorEmail: string;
   authorAvatar: string;
   text: string;
   createdAt: string;
@@ -17,6 +27,7 @@ export type Discussion = {
   id: string;
   title: string;
   authorName: string;
+  authorEmail: string;
   authorAvatar: string;
   createdAt: string;
   tag?: string;
@@ -29,6 +40,10 @@ type CommunityContextType = {
   addDiscussion: (data: { title: string; tag?: string }) => void;
   addComment: (discussionId: string, text: string) => void;
   toggleLike: (discussionId: string, userId: string) => void;
+  deleteDiscussion: (discussionId: string) => void;
+  editDiscussion: (discussionId: string, newTitle: string, newTag?: string) => void;
+  deleteComment: (discussionId: string, commentIndex: number) => void;
+  editComment: (discussionId: string, commentIndex: number, newText: string) => void;
 };
 
 const CommunityContext = createContext<CommunityContextType | undefined>(undefined);
@@ -54,6 +69,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     const newDiscussion = {
       title: data.title,
       authorName: user.name,
+      authorEmail: user.email,
       authorAvatar: `https://picsum.photos/seed/${user.email}/40`,
       createdAt: new Date().toISOString(),
       tag: data.tag,
@@ -76,6 +92,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     }
     const newComment: Comment = {
       authorName: user.name,
+      authorEmail: user.email,
       authorAvatar: `https://picsum.photos/seed/${user.email}/40`,
       text,
       createdAt: new Date().toISOString(),
@@ -107,9 +124,59 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteDiscussion = async (discussionId: string) => {
+      try {
+        await deleteDiscussionFromFirestore(discussionId);
+        toast({ title: "Discussion deleted."});
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error deleting discussion."});
+        console.error(error);
+      }
+  }
+
+  const editDiscussion = async (discussionId: string, newTitle: string, newTag?: string) => {
+      try {
+        await updateDiscussionInFirestore(discussionId, {title: newTitle, tag: newTag});
+        toast({ title: "Discussion updated."});
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error updating discussion."});
+        console.error(error);
+      }
+  }
+
+  const deleteComment = async (discussionId: string, commentIndex: number) => {
+    const discussion = discussions.find(d => d.id === discussionId);
+    if(!discussion) return;
+    const commentToDelete = discussion.comments[commentIndex];
+    try {
+      await deleteCommentFromFirestore(discussionId, commentToDelete);
+      toast({ title: "Comment deleted." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error deleting comment." });
+      console.error(error);
+    }
+  };
+  
+  const editComment = async (discussionId: string, commentIndex: number, newText: string) => {
+    const discussion = discussions.find(d => d.id === discussionId);
+    if (!discussion) return;
+  
+    const updatedComments = [...discussion.comments];
+    const oldComment = updatedComments[commentIndex];
+    updatedComments[commentIndex] = { ...oldComment, text: newText };
+  
+    try {
+      await updateCommentInFirestore(discussionId, updatedComments);
+      toast({ title: "Comment updated." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error updating comment." });
+      console.error(error);
+    }
+  };
+
 
   return (
-    <CommunityContext.Provider value={{ discussions, addDiscussion, addComment, toggleLike }}>
+    <CommunityContext.Provider value={{ discussions, addDiscussion, addComment, toggleLike, deleteDiscussion, editDiscussion, deleteComment, editComment }}>
       {children}
     </CommunityContext.Provider>
   );
