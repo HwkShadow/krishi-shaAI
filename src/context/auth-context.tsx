@@ -45,8 +45,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Mock user data for demonstration
 const initialUsers: User[] = [
   { uid: '1', name: 'Admin User', email: 'admin@example.com', location: 'Delhi, India', isAdmin: true, memberSince: '2023-01-15T10:00:00Z', photoURL: null },
-  { uid: '2', name: 'Ramesh Kumar', email: 'ramesh@example.com', location: 'Punjab, India', isAdmin: false, memberSince: '2023-02-20T11:30:00Z', photoURL: 'https://picsum.photos/seed/ramesh/100' },
-  { uid: '3', name: 'Sita Devi', email: 'sita@example.com', location: 'Kerala, India', isAdmin: false, memberSince: '2023-03-10T09:00:00Z', photoURL: 'https://picsum.photos/seed/sita/100' },
+  { uid: '2', name: 'Ramesh Kumar', email: 'ramesh@example.com', location: 'Punjab, India', isAdmin: false, memberSince: '2023-02-20T11:30:00Z', photoURL: null },
+  { uid: '3', name: 'Sita Devi', email: 'sita@example.com', location: 'Kerala, India', isAdmin: false, memberSince: '2023-03-10T09:00:00Z', photoURL: null },
 ];
 
 const ADMIN_EMAIL = 'admin@example.com';

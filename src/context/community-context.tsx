@@ -87,7 +87,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         },
         authorName: user.name,
         authorEmail: user.email,
-        authorAvatar: user.photoURL ?? `https://picsum.photos/seed/${user.email}/40`,
+        authorAvatar: user.photoURL,
         createdAt: new Date().toISOString(),
         tag: data.tag,
         comments: [],
@@ -115,7 +115,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         const newComment: Comment = {
             authorName: user.name,
             authorEmail: user.email,
-            authorAvatar: user.photoURL ?? `https://picsum.photos/seed/${user.email}/40`,
+            authorAvatar: user.photoURL,
             text: {
                 en: translatedText.en,
                 hi: translatedText.hi,

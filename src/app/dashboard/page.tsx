@@ -18,8 +18,8 @@ import { isSameDay } from "date-fns";
 import { DayPicker } from "react-day-picker";
 
 const initialDiscussions = [
-  { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: 'https://picsum.photos/seed/user1/40', replies: 5, likes: 10, tag: 'Wheat', time: '2 hours ago' },
-  { id: 2, title: 'Question about monsoon soil preparation', author: 'Sita D.', avatar: 'https://picsum.photos/seed/user2/40', replies: 12, likes: 25, tag: 'Soil', time: '1 day ago' },
+  { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: null, replies: 5, likes: 10, tag: 'Wheat', time: '2 hours ago' },
+  { id: 2, title: 'Question about monsoon soil preparation', author: 'Sita D.', avatar: null, replies: 12, likes: 25, tag: 'Soil', time: '1 day ago' },
 ];
 
 export default function DashboardPage() {
@@ -244,7 +244,7 @@ export default function DashboardPage() {
                          <Card key={d.id} className="p-4">
                             <div className="flex items-start gap-4">
                             <Avatar>
-                                <AvatarImage src={d.avatar} data-ai-hint="person face" />
+                                <AvatarImage src={d.avatar ?? undefined} />
                                 <AvatarFallback>{d.author.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
