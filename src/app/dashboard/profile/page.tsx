@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -77,7 +78,7 @@ export default function ProfilePage() {
                     <Card>
                         <CardContent className="pt-6 flex flex-col items-center text-center">
                             <Avatar className="h-24 w-24 mb-4">
-                                <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
+                                <AvatarImage src="https://picsum.photos/seed/user-avatar/100" data-ai-hint="person face" />
                                 <AvatarFallback className="text-3xl">{user.email.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <h2 className="text-xl font-bold">{user.name}</h2>
