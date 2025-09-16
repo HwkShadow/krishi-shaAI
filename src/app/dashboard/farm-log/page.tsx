@@ -78,7 +78,7 @@ export default function FarmLogPage() {
         }
     }
     fetchGrowthPlan();
-  }, [logs.length, toast]);
+  }, [logs, toast]);
 
   async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
@@ -337,3 +337,5 @@ export default function FarmLogPage() {
     </div>
   );
 }
+
+    
