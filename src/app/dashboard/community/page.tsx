@@ -184,8 +184,8 @@ export default function CommunityPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">
-                    <Button variant="ghost" size="sm" onClick={() => user && toggleLike(d.id, user.email)} className="flex items-center gap-1">
-                        <ThumbsUp className={`h-4 w-4 ${d.likes.includes(user?.email || '') ? 'text-primary fill-primary' : ''}`} />
+                    <Button variant="ghost" size="sm" onClick={() => user && toggleLike(d.id, user.uid)} className="flex items-center gap-1">
+                        <ThumbsUp className={`h-4 w-4 ${d.likes.includes(user?.uid || '') ? 'text-primary fill-primary' : ''}`} />
                         <span>{d.likes.length}</span>
                     </Button>
                     <div className="flex items-center gap-1">

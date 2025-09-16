@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { 
     getFirestore, 
     collection, 
@@ -11,7 +12,9 @@ import {
     arrayRemove,
     query,
     orderBy,
-    onSnapshot
+    onSnapshot,
+    getDoc,
+    setDoc
 } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -26,7 +29,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
+const auth = getAuth(app);
 
+
+// Discussions Collection
 const discussionsCollection = collection(db, "discussions");
 
 export const getDiscussions = (callback: (discussions: any[]) => void) => {
@@ -65,12 +71,6 @@ export const deleteCommentFromFirestore = async (discussionId: string, comment: 
     });
 }
 
-export const updateCommentInFirestore = async (discussionId: string, comments: any[]) => {
-    const discussionRef = doc(db, "discussions", discussionId);
-    return await updateDoc(discussionRef, { comments });
-};
-
-
 export const toggleLikeInFirestore = async (discussionId: string, userId: string, isLiked: boolean) => {
     const discussionRef = doc(db, "discussions", discussionId);
     return await updateDoc(discussionRef, {
@@ -78,4 +78,30 @@ export const toggleLikeInFirestore = async (discussionId: string, userId: string
     });
 }
 
-export { db };
+
+// Users Collection
+const usersCollection = collection(db, "users");
+
+export const addUserToFirestore = async (uid: string, userData: any) => {
+    const userRef = doc(db, "users", uid);
+    return await setDoc(userRef, userData);
+}
+
+export const getUserFromFirestore = async (uid: string) => {
+    const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+    if(userSnap.exists()) {
+        return { uid, ...userSnap.data() };
+    }
+    return null;
+}
+
+export const getAllUsersFromFirestore = (callback: (users: any[]) => void) => {
+    return onSnapshot(usersCollection, (snapshot) => {
+        const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        callback(users);
+    });
+}
+
+
+export { db, auth };

@@ -21,11 +21,18 @@ import { useAuth } from '@/context/auth-context';
 import { Loader2, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useLocalization } from '@/context/localization-context';
+import { useToast } from '@/hooks/use-toast';
 
-const formSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  location: z.string().optional(),
+});
+
+const signupSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  location: z.string().min(1, { message: 'Location is required.' }),
 });
 
 type AuthFormProps = {
@@ -33,27 +40,58 @@ type AuthFormProps = {
 };
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { translate } = useLocalization();
+  const { toast } = useToast();
+
+  const formSchema = mode === 'login' ? loginSchema : signupSchema;
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
-      location: '',
+      ...(mode === 'signup' && { name: '', location: '' }),
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    
-    // Mock API call
-    setTimeout(() => {
-      login(values.email, values.location);
-      setIsLoading(false);
-    }, 1000);
+    setError(null);
+    try {
+      if (mode === 'login') {
+        const loginValues = values as z.infer<typeof loginSchema>;
+        await login(loginValues.email, loginValues.password);
+      } else {
+        const signupValues = values as z.infer<typeof signupSchema>;
+        await signup(signupValues.name, signupValues.email, signupValues.password, signupValues.location);
+      }
+    } catch (e: any) {
+        let friendlyMessage = "An unexpected error occurred.";
+        if (e.code) {
+            switch(e.code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                    friendlyMessage = "Invalid credentials. Please check your email and password.";
+                    break;
+                case 'auth/email-already-in-use':
+                    friendlyMessage = "This email address is already in use by another account.";
+                    break;
+                default:
+                    friendlyMessage = `Authentication failed: ${e.code}`;
+            }
+        }
+      setError(friendlyMessage);
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Failed',
+        description: friendlyMessage,
+      })
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   const LeafIcon = () => (
@@ -103,6 +141,21 @@ export function AuthForm({ mode }: AuthFormProps) {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {mode === 'signup' && (
+                     <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>{translate('name', 'Name')}</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Your name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                )}
                 <FormField
                   control={form.control}
                   name="email"

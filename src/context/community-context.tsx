@@ -9,8 +9,7 @@ import {
     toggleLikeInFirestore, 
     getDiscussions,
     deleteDiscussionFromFirestore,
-    updateDiscussionInFirestore,
-    deleteCommentFromFirestore,
+    updateDiscussionInFirestore
 } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { translateText } from "@/ai/flows/translate-text-flow";
@@ -38,7 +37,7 @@ export type Discussion = {
   createdAt: string;
   tag?: string;
   comments: Comment[];
-  likes: string[]; // Array of user emails
+  likes: string[]; // Array of user emails/uids
 };
 
 type CommunityContextType = {
