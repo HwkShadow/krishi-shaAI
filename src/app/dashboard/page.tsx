@@ -8,6 +8,7 @@ import { useAuth } from "@/context/auth-context";
 import { useLocalization } from "@/context/localization-context";
 import { useEffect, useState } from "react";
 import { getWeather, GetWeatherOutput } from "@/ai/flows/get-weather-flow";
+import { getWeatherAlerts, WeatherAlert } from "@/ai/flows/weather-alert-flow";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const { translate } = useLocalization();
   const [weather, setWeather] = useState<GetWeatherOutput | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
+  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
   const [greeting, setGreeting] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { logs } = useLogs();
@@ -68,7 +70,41 @@ export default function DashboardPage() {
       setGreeting(translate('goodEvening', 'Good Evening'));
     }
   }, [translate]);
+
+   const quickOverview = [
+      { id: 1, title: "AI Queries", value: "0", icon: MessageSquare },
+      { id: 2, title: "Farm Activities", value: logs.length, icon: ClipboardList },
+      { id: 3, title: "New Alerts", value: alerts.length, icon: Bell },
+  ]
   
+  useEffect(() => {
+    async function fetchData() {
+      if (user?.location) {
+        setWeatherLoading(true);
+        try {
+          const [weatherData, alertsData] = await Promise.all([
+            getWeather({ location: user.location }),
+            getWeatherAlerts({ location: user.location }),
+          ]);
+          setWeather(weatherData);
+          setAlerts(alertsData.alerts);
+        } catch (error) {
+          console.error("Failed to fetch dashboard data:", error);
+          setWeather(null);
+          setAlerts([]);
+        } finally {
+          setWeatherLoading(false);
+        }
+      } else {
+        setWeather(null);
+        setAlerts([]);
+        setWeatherLoading(false);
+      }
+    }
+    fetchData();
+  }, [user?.location]);
+
+
   const features = [
     {
       title: translate('aiAssistant', "AI Assistant"),
@@ -92,34 +128,6 @@ export default function DashboardPage() {
       color: "bg-purple-500 hover:bg-purple-600",
     },
   ];
-
-  const quickOverview = [
-      { id: 1, title: "AI Queries", value: "0", icon: MessageSquare },
-      { id: 2, title: "Farm Activities", value: logs.length, icon: ClipboardList },
-      { id: 3, title: "New Alerts", value: "3", icon: Bell },
-  ]
-  
-  useEffect(() => {
-    async function fetchWeather() {
-      if (user?.location) {
-        setWeatherLoading(true);
-        try {
-          const weatherData = await getWeather({ location: user.location });
-          setWeather(weatherData);
-        } catch (error) {
-          console.error("Failed to fetch weather:", error);
-          setWeather(null);
-        } finally {
-          setWeatherLoading(false);
-        }
-      } else {
-        setWeather(null);
-        setWeatherLoading(false);
-      }
-    }
-    fetchWeather();
-  }, [user?.location]);
-
 
   return (
     <div className="space-y-8">
@@ -269,3 +277,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
