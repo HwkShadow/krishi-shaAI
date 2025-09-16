@@ -17,9 +17,15 @@ const GetWeatherAlertsInputSchema = z.object({
 });
 export type GetWeatherAlertsInput = z.infer<typeof GetWeatherAlertsInputSchema>;
 
+const TranslatedContentSchema = z.object({
+    en: z.string().describe('The English version of the content.'),
+    hi: z.string().describe('The Hindi version of the content.'),
+    ml: z.string().describe('The Malayalam version of the content.'),
+});
+
 const WeatherAlertSchema = z.object({
-    title: z.string().describe("A short, catchy title for the alert."),
-    description: z.string().describe("A detailed, actionable description of the alert and what the farmer should do."),
+    title: TranslatedContentSchema.describe("A short, catchy title for the alert in English, Hindi, and Malayalam."),
+    description: TranslatedContentSchema.describe("A detailed, actionable description of the alert and what the farmer should do, in English, Hindi, and Malayalam."),
     severity: z.enum(['low', 'medium', 'high']).describe("The severity level of the alert."),
     type: z.enum(['weather', 'heat', 'wind', 'pest', 'other']).describe("The category of the alert."),
 });
@@ -53,7 +59,7 @@ const prompt = ai.definePrompt({
   name: 'weatherAlertPrompt',
   input: { schema: WeatherAlertPromptContext },
   output: { schema: GetWeatherAlertsOutputSchema },
-  prompt: `You are an agricultural advisor. Based on the following weather data for {{{location}}}, generate a list of 2-3 actionable alerts and recommendations for a farmer. 
+  prompt: `You are an agricultural advisor. Based on the following weather data for {{{location}}}, generate a list of 1-2 actionable alerts and recommendations for a farmer. 
 
   Focus on potential risks and opportunities. For example, if it's very hot, advise on irrigation. If it's very windy, advise on protecting young plants. If conditions are favorable, suggest that. Be concise and practical.
 
@@ -63,6 +69,8 @@ const prompt = ai.definePrompt({
   - Wind Speed: {{{wind}}} km/h
   - Humidity: {{{humidity}}}%
 
+  IMPORTANT: For each alert, generate the 'title' and 'description' in all three languages: English (en), Hindi (hi), and Malayalam (ml).
+  
   Generate a list of alerts based on this data. If the weather is mild and there are no immediate concerns, you can return an empty list of alerts.`,
 });
 

@@ -6,6 +6,7 @@ import { Bell, CloudRain, Bug, Sun, Wind, Loader2 } from "lucide-react";
 import { getWeatherAlerts, WeatherAlert } from "@/ai/flows/weather-alert-flow";
 import { useAuth } from "@/context/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
+import { TranslatedContent } from "@/context/community-context";
 
 const iconMap: { [key: string]: React.ElementType } = {
   'weather': CloudRain,
@@ -16,7 +17,7 @@ const iconMap: { [key: string]: React.ElementType } = {
 };
 
 export default function AlertsPage() {
-  const { translate } = useLocalization();
+  const { translate, language } = useLocalization();
   const { user } = useAuth();
   const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +43,10 @@ export default function AlertsPage() {
     fetchAlerts();
   }, [user?.location]);
 
+  const getTranslatedAlertContent = (content: TranslatedContent) => {
+    return content[language] || content.en;
+  }
+
 
   return (
     <div className="space-y-6">
@@ -63,8 +68,8 @@ export default function AlertsPage() {
                     <Icon className="h-4 w-4" />
                     <div className="flex justify-between items-start w-full">
                         <div>
-                            <AlertTitle>{alert.title}</AlertTitle>
-                            <AlertDescription>{alert.description}</AlertDescription>
+                            <AlertTitle>{getTranslatedAlertContent(alert.title)}</AlertTitle>
+                            <AlertDescription>{getTranslatedAlertContent(alert.description)}</AlertDescription>
                         </div>
                     </div>
                 </Alert>
