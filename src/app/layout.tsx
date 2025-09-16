@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { LocalizationProvider } from '@/context/localization-context';
 import { LogProvider } from '@/context/log-context';
+import { CommunityProvider } from '@/context/community-context';
 
 export const metadata: Metadata = {
   title: 'Krishi SahAI',
@@ -26,7 +27,9 @@ export default function RootLayout({
         <AuthProvider>
           <LocalizationProvider>
             <LogProvider>
-              {children}
+              <CommunityProvider>
+                {children}
+              </CommunityProvider>
               <Toaster />
             </LogProvider>
           </LocalizationProvider>
