@@ -9,15 +9,15 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
 import { useLocalization } from "@/context/localization-context";
-import { useCommunity, Discussion } from "@/context/community-context";
+import { useCommunity, Discussion, TranslatedContent } from "@/context/community-context";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function CommunityPage() {
   const { user } = useAuth();
-  const { translate } = useLocalization();
-  const { discussions, addDiscussion, addComment, toggleLike, deleteDiscussion, editDiscussion, deleteComment, editComment } = useCommunity();
+  const { translate, language } = useLocalization();
+  const { discussions, addDiscussion, addComment, toggleLike, deleteDiscussion, editDiscussion, deleteComment, editComment, isPending } = useCommunity();
   
   const [isCreating, setIsCreating] = useState(false);
   const [newDiscussionTitle, setNewDiscussionTitle] = useState('');
@@ -25,7 +25,7 @@ export default function CommunityPage() {
   const [commentInputs, setCommentInputs] = useState<{[key: string]: string}>({});
   
   // State for editing
-  const [editingDiscussion, setEditingDiscussion] = useState<Discussion | null>(null);
+  const [editingDiscussion, setEditingDiscussion] = useState<(Discussion & { originalTitle: string; }) | null>(null);
   const [editingComment, setEditingComment] = useState<{discussionId: string; commentIndex: number; text: string} | null>(null);
 
   // State for delete confirmation
@@ -53,7 +53,7 @@ export default function CommunityPage() {
 
   const handleSaveEditDiscussion = () => {
     if(!editingDiscussion) return;
-    editDiscussion(editingDiscussion.id, editingDiscussion.title, editingDiscussion.tag);
+    editDiscussion(editingDiscussion.id, editingDiscussion.originalTitle, editingDiscussion.tag);
     setEditingDiscussion(null);
   }
 
@@ -61,6 +61,10 @@ export default function CommunityPage() {
     if(!editingComment) return;
     editComment(editingComment.discussionId, editingComment.commentIndex, editingComment.text);
     setEditingComment(null);
+  }
+  
+  const getTranslatedContent = (content: TranslatedContent) => {
+      return content[language] || content.en;
   }
 
   return (
@@ -113,7 +117,7 @@ export default function CommunityPage() {
           <h1 className="text-3xl font-headline flex items-center gap-3"><Users className="text-primary" />{translate('communityForum', 'Community Forum')}</h1>
           <p className="text-muted-foreground">{translate('communitySubtitle', 'Connect with fellow farmers, share knowledge, and grow together.')}</p>
         </div>
-        <Button onClick={() => setIsCreating(!isCreating)}>
+        <Button onClick={() => setIsCreating(!isCreating)} disabled={isPending}>
           <PlusCircle className="mr-2 h-4 w-4" /> 
           {isCreating ? translate('cancel', 'Cancel') : translate('startDiscussion', 'Start Discussion')}
         </Button>
@@ -136,7 +140,10 @@ export default function CommunityPage() {
               onChange={(e) => setNewDiscussionTag(e.target.value)}
             />
             <div className="flex justify-end">
-              <Button onClick={handleStartDiscussion}>Post Discussion</Button>
+              <Button onClick={handleStartDiscussion} disabled={isPending || !newDiscussionTitle}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Post Discussion
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -154,16 +161,19 @@ export default function CommunityPage() {
                   <div className="flex-1">
                     {editingDiscussion?.id === d.id ? (
                         <div className="space-y-2">
-                           <Input value={editingDiscussion.title} onChange={(e) => setEditingDiscussion({...editingDiscussion, title: e.target.value})}/>
+                           <Input value={editingDiscussion.originalTitle} onChange={(e) => setEditingDiscussion({...editingDiscussion, originalTitle: e.target.value})}/>
                            <Input value={editingDiscussion.tag} onChange={(e) => setEditingDiscussion({...editingDiscussion, tag: e.target.value || ''})}/>
                            <div className="flex gap-2">
-                            <Button size="sm" onClick={handleSaveEditDiscussion}>Save</Button>
+                            <Button size="sm" onClick={handleSaveEditDiscussion} disabled={isPending}>
+                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                Save
+                            </Button>
                             <Button size="sm" variant="ghost" onClick={() => setEditingDiscussion(null)}>Cancel</Button>
                            </div>
                         </div>
                     ) : (
                         <>
-                           <p className="font-semibold text-lg">{d.title}</p>
+                           <p className="font-semibold text-lg">{getTranslatedContent(d.title)}</p>
                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                             <span>{d.authorName}</span>
                             <span>&middot;</span>
@@ -190,7 +200,7 @@ export default function CommunityPage() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => setEditingDiscussion(d)}>
+                                <DropdownMenuItem onClick={() => setEditingDiscussion({...d, originalTitle: d.title.en})}>
                                     <Edit className="mr-2 h-4 w-4"/>
                                     <span>Edit</span>
                                 </DropdownMenuItem>
@@ -223,7 +233,7 @@ export default function CommunityPage() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => setEditingComment({discussionId: d.id, commentIndex: index, text: comment.text})}>
+                                            <DropdownMenuItem onClick={() => setEditingComment({discussionId: d.id, commentIndex: index, text: getTranslatedContent(comment.text)})}>
                                                 <Edit className="mr-2 h-4 w-4"/>
                                                 <span>Edit</span>
                                             </DropdownMenuItem>
@@ -239,12 +249,15 @@ export default function CommunityPage() {
                                     <div className="mt-1 space-y-2">
                                         <Textarea value={editingComment.text} onChange={(e) => setEditingComment({...editingComment, text: e.target.value})} className="text-sm"/>
                                         <div className="flex gap-2">
-                                            <Button size="sm" onClick={handleSaveEditComment}>Save</Button>
+                                            <Button size="sm" onClick={handleSaveEditComment} disabled={isPending}>
+                                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                Save
+                                            </Button>
                                             <Button size="sm" variant="ghost" onClick={() => setEditingComment(null)}>Cancel</Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground">{comment.text}</p>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{getTranslatedContent(comment.text)}</p>
                                 )}
                             </div>
                         </div>
@@ -259,9 +272,12 @@ export default function CommunityPage() {
                             value={commentInputs[d.id] || ''}
                             onChange={(e) => setCommentInputs({...commentInputs, [d.id]: e.target.value})}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddComment(d.id)}
-                            disabled={!user}
+                            disabled={!user || isPending}
                         />
-                        <Button size="sm" onClick={() => handleAddComment(d.id)} disabled={!user || !commentInputs[d.id]}>{translate('comment', 'Comment')}</Button>
+                        <Button size="sm" onClick={() => handleAddComment(d.id)} disabled={!user || !commentInputs[d.id] || isPending}>
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            {translate('comment', 'Comment')}
+                        </Button>
                     </div>
                 </div>
             </CardContent>

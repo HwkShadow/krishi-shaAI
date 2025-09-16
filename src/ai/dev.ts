@@ -9,3 +9,4 @@ import '@/ai/flows/farm-log-suggestion-flow.ts';
 import '@/ai/flows/speech-to-text-flow.ts';
 import '@/ai/flows/weather-alert-flow.ts';
 import '@/ai/flows/farm-growth-plan-flow.ts';
+import '@/ai/flows/translate-text-flow.ts';
