@@ -16,21 +16,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLogs } from "@/context/log-context";
 import { isSameDay } from "date-fns";
 import { DayPicker } from "react-day-picker";
-
-const initialDiscussions = [
-  { id: 1, title: 'Best pesticide for wheat rust?', author: 'Ramesh K.', avatar: null, replies: 5, likes: 10, tag: 'Wheat', time: '2 hours ago' },
-  { id: 2, title: 'Question about monsoon soil preparation', author: 'Sita D.', avatar: null, replies: 12, likes: 25, tag: 'Soil', time: '1 day ago' },
-];
+import { useCommunity } from "@/context/community-context";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { translate } = useLocalization();
+  const { translate, language } = useLocalization();
   const [weather, setWeather] = useState<GetWeatherOutput | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
   const [greeting, setGreeting] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { logs } = useLogs();
+  const { discussions } = useCommunity();
 
   const loggedDays = logs.map(log => log.date);
 
@@ -73,9 +70,9 @@ export default function DashboardPage() {
   }, [translate]);
 
    const quickOverview = [
-      { id: 1, title: "AI Queries", value: "0", icon: MessageSquare },
-      { id: 2, title: "Farm Activities", value: logs.length, icon: ClipboardList },
-      { id: 3, title: "New Alerts", value: alerts.length, icon: Bell },
+      { id: 1, title: "AI Queries", value: "0", icon: MessageSquare, href: "/dashboard/query"},
+      { id: 2, title: "Farm Activities", value: logs.length, icon: ClipboardList, href: "/dashboard/farm-log" },
+      { id: 3, title: "New Alerts", value: alerts.length, icon: Bell, href: "/dashboard/alerts" },
   ]
   
   useEffect(() => {
@@ -129,6 +126,11 @@ export default function DashboardPage() {
       color: "bg-purple-500 hover:bg-purple-600",
     },
   ];
+  
+  const getTranslatedContent = (content: any) => {
+      return content[language] || content.en;
+  }
+
 
   return (
     <div className="space-y-8">
@@ -161,13 +163,15 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-3 gap-4 text-center">
                     {quickOverview.map(item => (
-                        <div key={item.id} className="bg-muted/50 p-4 rounded-lg flex flex-col items-center gap-2">
+                       <Link href={item.href} key={item.id}>
+                        <div className="bg-muted/50 p-4 rounded-lg flex flex-col items-center gap-2 h-full transition-colors hover:bg-muted">
                             <div className="p-3 bg-white rounded-full text-primary">
                                 <item.icon className="h-6 w-6"/>
                             </div>
                             <p className="text-2xl font-bold">{item.value}</p>
                             <p className="text-sm text-muted-foreground">{item.title}</p>
                         </div>
+                       </Link>
                     ))}
                 </CardContent>
             </Card>
@@ -202,36 +206,38 @@ export default function DashboardPage() {
         </section>
 
         <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="lg:col-span-1">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <CalendarIcon className="h-6 w-6 text-primary"/>
-                        Activity Calendar
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        className="rounded-md border"
-                        modifiers={dayPickerModifiers}
-                        modifiersStyles={dayPickerModifierStyles}
-                        components={{
-                            DayContent: (props) => {
-                                const isLogged = loggedDays.some(loggedDay => isSameDay(loggedDay, props.date));
-                                return (
-                                    <div className="relative w-full h-full flex items-center justify-center">
-                                        <span>{props.date.getDate()}</span>
-                                        {isLogged && <div className="absolute bottom-1 w-1 h-1 bg-primary rounded-full"></div>}
-                                    </div>
-                                );
-                            }
-                        }}
-                        footer={<DayPickerFooter />}
-                    />
-                </CardContent>
-            </Card>
+             <Link href="/dashboard/farm-log" className="lg:col-span-1 block transition-transform hover:scale-[1.02]">
+                <Card className="h-full">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <CalendarIcon className="h-6 w-6 text-primary"/>
+                            Activity Calendar
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={setDate}
+                            className="rounded-md border"
+                            modifiers={dayPickerModifiers}
+                            modifiersStyles={dayPickerModifierStyles}
+                            components={{
+                                DayContent: (props) => {
+                                    const isLogged = loggedDays.some(loggedDay => isSameDay(loggedDay, props.date));
+                                    return (
+                                        <div className="relative w-full h-full flex items-center justify-center">
+                                            <span>{props.date.getDate()}</span>
+                                            {isLogged && <div className="absolute bottom-1 w-1 h-1 bg-primary rounded-full"></div>}
+                                        </div>
+                                    );
+                                }
+                            }}
+                            footer={<DayPickerFooter />}
+                        />
+                    </CardContent>
+                </Card>
+            </Link>
             <Card className="lg:col-span-2">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -240,33 +246,35 @@ export default function DashboardPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {initialDiscussions.map((d) => (
-                         <Card key={d.id} className="p-4">
-                            <div className="flex items-start gap-4">
-                            <Avatar>
-                                <AvatarImage src={d.avatar ?? undefined} />
-                                <AvatarFallback>{d.author.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <Link href="/dashboard/community" className="font-semibold text-md hover:underline">{d.title}</Link>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                <span>{d.author}</span>
-                                <span>&middot;</span>
-                                <span>{d.time}</span>
+                    {discussions.slice(0, 2).map((d) => (
+                         <Card key={d.id} className="p-4 hover:bg-muted/50 transition-colors">
+                            <Link href="/dashboard/community">
+                                <div className="flex items-start gap-4">
+                                <Avatar>
+                                    <AvatarImage src={d.authorAvatar ?? undefined} />
+                                    <AvatarFallback>{d.authorName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <p className="font-semibold text-md">{getTranslatedContent(d.title)}</p>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                    <span>{d.authorName}</span>
+                                    <span>&middot;</span>
+                                     <span>{new Date(d.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    {d.tag && <Badge variant="secondary" className="mt-2">{d.tag}</Badge>}
                                 </div>
-                                <Badge variant="secondary" className="mt-2">{d.tag}</Badge>
-                            </div>
-                            <div className="flex items-center gap-4 text-muted-foreground">
-                                <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                                    <ThumbsUp className="h-4 w-4" />
-                                    <span>{d.likes}</span>
-                                </Button>
-                                <div className="flex items-center gap-1">
-                                <MessageSquare className="h-4 w-4" />
-                                <span>{d.replies}</span>
+                                <div className="flex items-center gap-4 text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <ThumbsUp className="h-4 w-4" />
+                                        <span>{d.likes.length}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span>{d.comments.length}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            </div>
+                                </div>
+                            </Link>
                         </Card>
                     ))}
                      <Button variant="outline" className="w-full" asChild>
@@ -278,3 +286,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
