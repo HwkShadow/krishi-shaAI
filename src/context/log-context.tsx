@@ -18,11 +18,7 @@ type LogContextType = {
   addLog: (log: LogEntry) => void;
 };
 
-const initialLogs: LogEntry[] = [
-    { id: '1', activity: 'Sowing', crop: 'Wheat', date: new Date(new Date().getFullYear(), new Date().getMonth(), 2), notes: 'Sowed 10 acres of wheat.' },
-    { id: '2', activity: 'Fertilizing', crop: 'Wheat', date: new Date(new Date().getFullYear(), new Date().getMonth(), 8), notes: 'Applied urea fertilizer.' },
-    { id: '3', activity: 'Harvesting', crop: 'Rice', date: new Date(new Date().getFullYear(), new Date().getMonth(), 15), notes: 'Harvested 5 tons of paddy.' },
-];
+const initialLogs: LogEntry[] = [];
 
 const LogContext = createContext<LogContextType | undefined>(undefined);
 
