@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ClipboardList, PlusCircle, Lightbulb, Loader2 } from 'lucide-react';
+import { ClipboardList, PlusCircle, Lightbulb, Loader2, Trash2 } from 'lucide-react';
 import { useLocalization } from '@/context/localization-context';
 import { getFarmLogSuggestion, FarmLogSuggestionOutput } from '@/ai/flows/farm-log-suggestion-flow';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
@@ -34,12 +34,13 @@ const activityOptions = ['Sowing', 'Pesticide', 'Fertilizing', 'Watering', 'Harv
 
 
 export default function FarmLogPage() {
-  const { logs, addLog } = useLogs();
+  const { logs, addLog, deleteLog } = useLogs();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const { translate } = useLocalization();
   const [suggestion, setSuggestion] = useState<FarmLogSuggestionOutput | null>(null);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof logSchema>>({
@@ -74,6 +75,17 @@ export default function FarmLogPage() {
     }
   }
 
+  const handleDelete = () => {
+    if (logToDelete) {
+        deleteLog(logToDelete);
+        toast({
+            title: "Log Deleted",
+            description: "The farm activity log has been successfully deleted.",
+        });
+        setLogToDelete(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
         <AlertDialog open={showSuggestionModal} onOpenChange={setShowSuggestionModal}>
@@ -96,6 +108,21 @@ export default function FarmLogPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogAction onClick={() => setShowSuggestionModal(false)}>Close</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the farm log entry.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setLogToDelete(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -194,6 +221,7 @@ export default function FarmLogPage() {
                 <TableHead>Crop</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Notes</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -203,9 +231,15 @@ export default function FarmLogPage() {
                   <TableCell>{log.crop}</TableCell>
                   <TableCell>{format(log.date, 'PPP')}</TableCell>
                   <TableCell>{log.notes}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => setLogToDelete(log.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <span className="sr-only">Delete</span>
+                    </Button>
+                  </TableCell>
                 </TableRow>
               )) : (
-                <TableRow><TableCell colSpan={4} className="text-center">No logs found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center">No logs found.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

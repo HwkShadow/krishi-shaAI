@@ -16,9 +16,8 @@ export type LogEntry = z.infer<typeof logSchema> & { id: string };
 type LogContextType = {
   logs: LogEntry[];
   addLog: (log: LogEntry) => void;
+  deleteLog: (id: string) => void;
 };
-
-const initialLogs: LogEntry[] = [];
 
 const LogContext = createContext<LogContextType | undefined>(undefined);
 
@@ -34,7 +33,7 @@ export function LogProvider({ children }: { children: ReactNode }) {
       }));
       setLogs(parsedLogs);
     } else {
-        setLogs(initialLogs);
+        setLogs([]);
     }
   }, []);
 
@@ -44,8 +43,14 @@ export function LogProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("farmLogs", JSON.stringify(newLogs));
   };
 
+  const deleteLog = (id: string) => {
+    const newLogs = logs.filter(log => log.id !== id);
+    setLogs(newLogs);
+    localStorage.setItem("farmLogs", JSON.stringify(newLogs));
+  }
+
   return (
-    <LogContext.Provider value={{ logs, addLog }}>
+    <LogContext.Provider value={{ logs, addLog, deleteLog }}>
       {children}
     </LogContext.Provider>
   );
