@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/context/localization-context';
+import { speechToText } from '@/ai/flows/speech-to-text-flow';
 
 type InputMode = 'image' | 'text' | 'audio';
 
@@ -20,6 +21,7 @@ export default function DiagnosePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [textInput, setTextInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [result, setResult] = useState<DiagnosePlantDiseaseOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<InputMode>('image');
@@ -53,7 +55,7 @@ export default function DiagnosePage() {
     }
   };
 
-  const toDataURL = (file: File): Promise<string> =>
+  const toDataURL = (file: Blob): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -102,7 +104,7 @@ export default function DiagnosePage() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
@@ -111,10 +113,25 @@ export default function DiagnosePage() {
 
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        // In a real app, you would send this audioBlob to a speech-to-text API
-        // For this mock, we'll just use a placeholder text.
-        setTextInput('Audio recorded. Symptoms described: leaves are yellow and have brown spots.');
-        stream.getTracks().forEach(track => track.stop());
+        
+        setIsTranscribing(true);
+        setTextInput('');
+
+        try {
+            const audioDataUri = await toDataURL(audioBlob);
+            const { text } = await speechToText({ audioDataUri });
+            setTextInput(text);
+        } catch(e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Transcription Failed',
+                description: 'Could not transcribe the audio. Please try again.',
+            });
+        } finally {
+            setIsTranscribing(false);
+            stream.getTracks().forEach(track => track.stop());
+        }
       };
 
       mediaRecorderRef.current.start();
@@ -204,7 +221,13 @@ export default function DiagnosePage() {
                         {isRecording ? <Square className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
                       </Button>
                       <p className="text-muted-foreground">{isRecording ? translate('recording', 'Recording... Click to stop.') : translate('recordSymptoms', 'Click to record symptoms')}</p>
-                      {textInput && inputMode === 'audio' && (
+                      {isTranscribing && (
+                        <div className="flex items-center gap-2">
+                           <Loader2 className="h-4 w-4 animate-spin"/>
+                           <p className="text-sm">Transcribing audio...</p>
+                        </div>
+                      )}
+                      {textInput && inputMode === 'audio' && !isTranscribing && (
                         <p className="text-sm text-center bg-muted p-2 rounded-md">{textInput}</p>
                       )}
                    </div>
