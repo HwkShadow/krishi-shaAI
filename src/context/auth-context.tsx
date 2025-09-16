@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
 
 type User = {
   name: string;
@@ -46,7 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (storedAllUsers) {
       setAllUsers(JSON.parse(storedAllUsers));
+    } else {
+        // If allUsers isn't there, but a logged in user is, create it.
+        if (storedUser) {
+            const currentUser = JSON.parse(storedUser);
+            const initialUsers = [{name: currentUser.name, email: currentUser.email, location: currentUser.location, memberSince: currentUser.memberSince }];
+            setAllUsers(initialUsers);
+            localStorage.setItem("allUsers", JSON.stringify(initialUsers));
+        }
     }
+
     setIsLoading(false);
   }, []);
 
@@ -54,29 +62,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAdmin = email === ADMIN_EMAIL;
     const name = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     
-    // Check if user already exists to preserve memberSince date
-    const existingUsers: User[] = JSON.parse(localStorage.getItem("allUsers") || "[]");
-    const existingUser = existingUsers.find((u: User) => u.email === email);
+    const existingUsers: Omit<User, 'isAdmin'>[] = JSON.parse(localStorage.getItem("allUsers") || "[]");
+    let userToLogin = existingUsers.find(u => u.email === email);
+    let userPayload: User;
 
-    const memberSince = existingUser ? existingUser.memberSince : new Date().toISOString();
-
-    const userPayload: User = { 
-        name, 
-        email, 
-        location: location || 'Punjab, India', 
-        isAdmin,
-        memberSince
-    };
-
-    localStorage.setItem("isAuthenticated", "true");
-    localStorage.setItem("user", JSON.stringify(userPayload));
-
-    if (!existingUser) {
+    if (userToLogin) {
+        // Existing user
+        userPayload = { ...userToLogin, isAdmin };
+    } else {
+        // New user
+        const memberSince = new Date().toISOString();
+        userPayload = { 
+            name, 
+            email, 
+            location: location || 'Punjab, India', 
+            isAdmin,
+            memberSince
+        };
         const newAllUsers = [...existingUsers, { name: userPayload.name, email: userPayload.email, location: userPayload.location, memberSince: userPayload.memberSince }];
         localStorage.setItem("allUsers", JSON.stringify(newAllUsers));
         setAllUsers(newAllUsers);
     }
-
+    
+    localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("user", JSON.stringify(userPayload));
+    
     setIsAuthenticated(true);
     setUser(userPayload);
     
