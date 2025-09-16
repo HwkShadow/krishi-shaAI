@@ -37,11 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         const userData = await getUserFromFirestore(firebaseUser.uid);
         if (userData) {
-          setUser({ ...userData, isAdmin: userData.email === ADMIN_EMAIL } as User);
+          const fetchedUser = { ...userData, isAdmin: userData.email === ADMIN_EMAIL } as User;
+          setUser(fetchedUser);
         }
       } else {
         setUser(null);
@@ -49,18 +50,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     });
 
-    const unsubscribeUsers = getAllUsersFromFirestore((users) => {
+    let unsubscribeUsers = () => {};
+    if (user?.isAdmin) {
+      unsubscribeUsers = getAllUsersFromFirestore((users) => {
         setAllUsers(users as Omit<User, 'isAdmin'>[]);
-    });
+      });
+    } else {
+        setAllUsers([]);
+    }
 
     return () => {
-      unsubscribe();
+      unsubscribeAuth();
       unsubscribeUsers();
     };
-  }, []);
+  }, [user?.isAdmin]);
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
+    // onAuthStateChanged will handle setting the user
     router.push('/dashboard');
   };
 
@@ -76,7 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       memberSince,
     };
 
-    await addUserToFirestore(uid, newUser);
+    // Use setDoc instead of addUserToFirestore to ensure the user doc is created with the UID
+    await setDoc(doc(db, "users", uid), newUser);
     setUser({ ...newUser, uid, isAdmin: email === ADMIN_EMAIL });
     router.push('/dashboard');
   };
@@ -90,7 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const updatedUser = { ...user, location: newLocation };
       setUser(updatedUser);
-      addUserToFirestore(user.uid, { location: newLocation }); // This will merge
+      // Use setDoc with merge:true to update or create
+      setDoc(doc(db, "users", user.uid), { location: newLocation }, { merge: true });
     }
   };
   
@@ -98,7 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if(user) {
         const updatedUser = {...user, ...data};
         setUser(updatedUser);
-        addUserToFirestore(user.uid, data);
+        // Use setDoc with merge:true to update or create
+        setDoc(doc(db, "users", user.uid), data, { merge: true });
     }
   }
 

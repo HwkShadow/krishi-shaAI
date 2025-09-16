@@ -84,7 +84,8 @@ const usersCollection = collection(db, "users");
 
 export const addUserToFirestore = async (uid: string, userData: any) => {
     const userRef = doc(db, "users", uid);
-    return await setDoc(userRef, userData);
+    // Use setDoc with merge: true to avoid overwriting existing data
+    return await setDoc(userRef, userData, { merge: true });
 }
 
 export const getUserFromFirestore = async (uid: string) => {
@@ -97,7 +98,8 @@ export const getUserFromFirestore = async (uid: string) => {
 }
 
 export const getAllUsersFromFirestore = (callback: (users: any[]) => void) => {
-    return onSnapshot(usersCollection, (snapshot) => {
+    const q = query(usersCollection, orderBy("memberSince", "desc"));
+    return onSnapshot(q, (snapshot) => {
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         callback(users);
     });
