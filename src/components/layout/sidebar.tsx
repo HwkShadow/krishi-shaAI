@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -113,7 +114,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild tooltip={translate('myProfile', 'My Profile')} className='h-auto py-2 justify-start'>
                   <Link href="/dashboard/profile">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
+                        <AvatarImage src={user?.photoURL} />
                         <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                       </Avatar>
                       <div>

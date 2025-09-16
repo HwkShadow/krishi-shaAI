@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -112,7 +113,7 @@ export default function QueryPage() {
                 </div>
                  {message.sender === 'user' && (
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
+                    <AvatarImage src={user?.photoURL} />
                     <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                   </Avatar>
                 )}

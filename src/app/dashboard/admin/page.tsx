@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuth } from "@/context/auth-context";
@@ -53,7 +54,7 @@ export default function AdminPage() {
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
-                                                <AvatarImage src={`https://picsum.photos/seed/${u.email}/40`} data-ai-hint="person face" />
+                                                <AvatarImage src={u.photoURL} />
                                                 <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{u.name}</span>

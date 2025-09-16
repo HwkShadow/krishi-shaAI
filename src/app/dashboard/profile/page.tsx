@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -14,16 +15,17 @@ import { useCommunity } from '@/context/community-context';
 export default function ProfilePage() {
     const { user } = useAuth();
     const { logs } = useLogs();
-    const { discussions } = useCommunity();
+    const { discussions, isPending } = useCommunity();
 
     const communityPostsCount = React.useMemo(() => {
-        if (!user) return 0;
+        if (!user || !discussions) return 0;
         const userDiscussions = discussions.filter(d => d.authorEmail === user.email).length;
         const userComments = discussions.reduce((acc, d) => {
             return acc + d.comments.filter(c => c.authorEmail === user.email).length;
         }, 0);
         return userDiscussions + userComments;
     }, [discussions, user]);
+
 
     if (!user) {
         return (
@@ -67,7 +69,7 @@ export default function ProfilePage() {
                     <Card>
                         <CardContent className="pt-6 flex flex-col items-center text-center">
                             <Avatar className="h-24 w-24 mb-4">
-                                <AvatarImage src="https://picsum.photos/seed/user-avatar/100" data-ai-hint="person face" />
+                                <AvatarImage src={user.photoURL} />
                                 <AvatarFallback className="text-3xl">{user.email.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <h2 className="text-xl font-bold">{user.name}</h2>
@@ -86,7 +88,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent className="grid sm:grid-cols-2 gap-4">
                         <StatCard icon={ClipboardList} label="Farm Logs" value={logs.length} />
-                        <StatCard icon={Users2} label="Community Posts" value={communityPostsCount} />
+                        <StatCard icon={Users2} label="Community Posts" value={isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : communityPostsCount} />
                         <StatCard icon={CalendarDays} label="Member Since" value={user.memberSince ? format(new Date(user.memberSince), 'MMMM yyyy') : 'N/A'} />
                     </CardContent>
                 </Card>

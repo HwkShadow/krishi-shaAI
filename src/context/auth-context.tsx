@@ -12,6 +12,7 @@ export type User = {
   location: string;
   isAdmin: boolean;
   memberSince: string;
+  photoURL?: string;
 }
 
 type AuthContextType = {

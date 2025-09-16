@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -155,7 +156,7 @@ export default function CommunityPage() {
             <CardHeader>
                 <div className="flex items-start gap-4">
                   <Avatar>
-                    <AvatarImage src={d.authorAvatar} data-ai-hint="person face" />
+                    <AvatarImage src={d.authorAvatar} />
                     <AvatarFallback>{d.authorName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -219,7 +220,7 @@ export default function CommunityPage() {
                     {d.comments.map((comment, index) => (
                         <div key={index} className="flex items-start gap-3 bg-muted/50 p-3 rounded-lg">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={comment.authorAvatar} data-ai-hint="person face" />
+                                <AvatarImage src={comment.authorAvatar} />
                                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
@@ -264,7 +265,7 @@ export default function CommunityPage() {
                     ))}
                     <div className="flex items-center gap-2 pt-2">
                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={`https://picsum.photos/seed/${user?.email}/40`} data-ai-hint="person face" />
+                            <AvatarImage src={user?.photoURL} />
                             <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <Input 

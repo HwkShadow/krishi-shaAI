@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -87,7 +88,7 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10">
-                <AvatarImage src="https://picsum.photos/seed/avatar/100" data-ai-hint="person face" />
+                <AvatarImage src={user?.photoURL} />
                 <AvatarFallback>{user?.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
               </Avatar>
             </Button>
