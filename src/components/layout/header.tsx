@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings, User, Languages, MapPin, Loader2, PanelLeft } from 'lucide-react';
+import { LogOut, Settings, User, Languages, MapPin, Loader2, PanelLeft, LocateFixed } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +34,49 @@ export function AppHeader() {
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [newLocation, setNewLocation] = useState(user?.location || '');
     const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+
+
+    const handleFetchLocation = () => {
+        setIsFetchingLocation(true);
+        if (!navigator.geolocation) {
+            toast({ variant: 'destructive', title: 'Geolocation is not supported by your browser.' });
+            setIsFetchingLocation(false);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+                    if (!apiKey) {
+                        throw new Error("API key not configured.");
+                    }
+                    const geoUrl = `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${apiKey}`;
+                    const response = await fetch(geoUrl);
+                    const data = await response.json();
+
+                    if (data && data.length > 0) {
+                        const { name, country } = data[0];
+                        const locationString = `${name}, ${country}`;
+                        setNewLocation(locationString);
+                        toast({ title: 'Location found!', description: locationString });
+                    } else {
+                        throw new Error('Could not determine location from coordinates.');
+                    }
+                } catch (error) {
+                    toast({ variant: 'destructive', title: 'Could not fetch location name.' });
+                } finally {
+                    setIsFetchingLocation(false);
+                }
+            },
+            (error) => {
+                toast({ variant: 'destructive', title: 'Unable to retrieve your location.', description: error.message });
+                setIsFetchingLocation(false);
+            }
+        );
+    };
 
     const handleLocationUpdate = () => {
         if (!newLocation.trim()) {
@@ -159,6 +202,13 @@ export function AppHeader() {
                         placeholder="e.g., Vellore, India"
                     />
                 </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                    <div/>
+                    <Button variant="outline" className="col-span-3" onClick={handleFetchLocation} disabled={isFetchingLocation}>
+                        {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LocateFixed className="mr-2 h-4 w-4"/>}
+                        Use current location
+                    </Button>
+                </div>
             </div>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setIsLocationModalOpen(false)}>Cancel</Button>
@@ -173,5 +223,3 @@ export function AppHeader() {
     </header>
   );
 }
-
-    

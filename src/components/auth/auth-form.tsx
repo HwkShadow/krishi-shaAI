@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, LocateFixed } from 'lucide-react';
 import Image from 'next/image';
 import { useLocalization } from '@/context/localization-context';
 import { useToast } from '@/hooks/use-toast';
@@ -49,6 +49,7 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps) {
   const { login, signup, forgotPassword } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { translate } = useLocalization();
   const { toast } = useToast();
@@ -64,6 +65,47 @@ export function AuthForm({ mode }: AuthFormProps) {
       ...(mode === 'signup' && { name: '', location: '' }),
     },
   });
+
+  const handleFetchLocation = () => {
+    setIsFetchingLocation(true);
+    if (!navigator.geolocation) {
+      toast({ variant: 'destructive', title: 'Geolocation is not supported by your browser.' });
+      setIsFetchingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+          if (!apiKey) {
+            throw new Error("API key not configured.");
+          }
+          const geoUrl = `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${apiKey}`;
+          const response = await fetch(geoUrl);
+          const data = await response.json();
+          if (data && data.length > 0) {
+            const { name, country } = data[0];
+            const locationString = `${name}, ${country}`;
+            form.setValue('location', locationString, { shouldValidate: true });
+             toast({ title: 'Location found!', description: locationString });
+          } else {
+            throw new Error('Could not determine location from coordinates.');
+          }
+        } catch (error) {
+           toast({ variant: 'destructive', title: 'Could not fetch location name.' });
+        } finally {
+            setIsFetchingLocation(false);
+        }
+      },
+      (error) => {
+        toast({ variant: 'destructive', title: 'Unable to retrieve your location.', description: error.message });
+        setIsFetchingLocation(false);
+      }
+    );
+  };
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -233,7 +275,18 @@ export function AuthForm({ mode }: AuthFormProps) {
                         <FormControl>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="e.g., Vellore, India" {...field} className="pl-10" />
+                                <Input placeholder="e.g., Vellore, India" {...field} className="pl-10 pr-24" />
+                                 <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
+                                    onClick={handleFetchLocation}
+                                    disabled={isFetchingLocation}
+                                >
+                                    {isFetchingLocation ? <Loader2 className="h-4 w-4 animate-spin"/> : <LocateFixed className="h-4 w-4"/>}
+                                    <span className="ml-2 hidden sm:inline">Use current location</span>
+                                </Button>
                             </div>
                         </FormControl>
                         <FormMessage />
@@ -270,5 +323,3 @@ export function AuthForm({ mode }: AuthFormProps) {
     </div>
   );
 }
-
-    
