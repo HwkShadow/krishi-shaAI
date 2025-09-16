@@ -112,9 +112,11 @@ export function AppHeader() {
                 <span>{translate('profile', 'Profile')}</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => toast({ title: translate('settingsPageComingSoon', "Settings page coming soon!")})}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>{translate('settings', 'Settings')}</span>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{translate('settings', 'Settings')}</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>

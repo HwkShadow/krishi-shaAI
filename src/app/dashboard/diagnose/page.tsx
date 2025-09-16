@@ -13,6 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/context/localization-context';
 import { speechToText } from '@/ai/flows/speech-to-text-flow';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
 
 type InputMode = 'image' | 'text' | 'audio';
 
@@ -159,12 +166,6 @@ export default function DiagnosePage() {
       startRecording();
     }
   };
-  
-  const PillIcon = ({ children }: { children: React.ReactNode }) => (
-    <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-        {children}
-    </div>
-  );
 
   return (
     <div className="container mx-auto max-w-4xl py-8">
@@ -255,36 +256,61 @@ export default function DiagnosePage() {
 
           {result && (
             <div className="space-y-6 pt-6 border-t">
-                <h2 className="text-2xl font-headline text-center">{translate('diagnosisResult', 'Diagnosis Result')}</h2>
-                <div className="grid md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between font-headline">
-                                <span>{translate('diagnosis', 'Diagnosis')}</span>
-                                <PillIcon>{result.diagnosis}</PillIcon>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                           <div className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="font-medium flex items-center gap-2"><BadgePercent/> {translate('confidence', 'Confidence')}</span>
-                                    <span>{(result.confidenceScore * 100).toFixed(0)}%</span>
-                                </div>
-                                <Progress value={result.confidenceScore * 100} />
-                           </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">
-                                {translate('suggestedTreatment', 'Suggested Treatment')}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm">{result.treatment}</p>
-                        </CardContent>
-                    </Card>
+                <div className="flex flex-col items-center text-center">
+                    <h2 className="text-2xl font-headline">{translate('diagnosisResult', 'Diagnosis Result')}</h2>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="font-medium flex items-center gap-2 text-sm"><BadgePercent/> {translate('confidence', 'Confidence')}</span>
+                        <div className="w-24">
+                            <Progress value={result.confidenceScore * 100} />
+                        </div>
+                        <span className="text-sm font-semibold">{(result.confidenceScore * 100).toFixed(0)}%</span>
+                    </div>
                 </div>
+
+                <Accordion type="single" collapsible defaultValue="en" className="w-full">
+                    <AccordionItem value="en">
+                        <AccordionTrigger>English</AccordionTrigger>
+                        <AccordionContent>
+                           <Card>
+                             <CardHeader>
+                                <CardTitle>{result.en.diagnosis}</CardTitle>
+                             </CardHeader>
+                             <CardContent>
+                                <h3 className="font-semibold mt-4 mb-2">Treatment</h3>
+                                <p className="text-sm whitespace-pre-wrap">{result.en.treatment}</p>
+                             </CardContent>
+                           </Card>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="hi">
+                        <AccordionTrigger>हिन्दी (Hindi)</AccordionTrigger>
+                        <AccordionContent>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>{result.hi.diagnosis}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <h3 className="font-semibold mt-4 mb-2">उपचार</h3>
+                                    <p className="text-sm whitespace-pre-wrap">{result.hi.treatment}</p>
+                                </CardContent>
+                            </Card>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="ml">
+                        <AccordionTrigger>മലയാളം (Malayalam)</AccordionTrigger>
+                        <AccordionContent>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>{result.ml.diagnosis}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <h3 className="font-semibold mt-4 mb-2">ചികിത്സ</h3>
+                                    <p className="text-sm whitespace-pre-wrap">{result.ml.treatment}</p>
+                                </CardContent>
+                            </Card>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </div>
           )}
         </CardContent>

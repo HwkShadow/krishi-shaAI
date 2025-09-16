@@ -39,6 +39,7 @@ export function AppSidebar() {
     { href: '/dashboard', label: translate('dashboard', 'Dashboard'), icon: LayoutDashboard },
     { href: '/dashboard/query', label: translate('aiAssistant', 'AI Assistant'), icon: Bot },
     { href: '/dashboard/farm-log', label: translate('farmManagement', 'Farm Management'), icon: Tractor },
+    { href: '/dashboard/diagnose', label: translate('diagnose', 'Diagnose'), icon: LifeBuoy },
     { href: '/dashboard/community', label: translate('community', 'Farmer\'s Community'), icon: Users },
     { href: '/dashboard/alerts', label: translate('alertsAndNews', 'Alerts & News'), icon: Bell },
   ];
@@ -78,7 +79,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard')}
                 tooltip={item.label}
                 className="h-10 justify-start"
               >
@@ -121,6 +122,14 @@ export function AppSidebar() {
                       </div>
                   </Link>
                 </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Settings" className="h-10 justify-start">
+                  <Link href="/dashboard/settings">
+                    <Settings className="h-5 w-5" />
+                    <span>Settings</span>
+                  </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

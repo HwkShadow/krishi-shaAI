@@ -25,9 +25,15 @@ const DiagnosePlantDiseaseInputSchema = z.object({
 });
 export type DiagnosePlantDiseaseInput = z.infer<typeof DiagnosePlantDiseaseInputSchema>;
 
-const DiagnosePlantDiseaseOutputSchema = z.object({
+const DiagnosisDetailSchema = z.object({
   diagnosis: z.string().describe('The diagnosis of the plant disease.'),
-  treatment: z.string().describe('Suggested treatment options for the diagnosed disease.'),
+  treatment: z.string().describe('Suggested treatment options, including specific chemical and organic solutions, and application instructions.'),
+});
+
+const DiagnosePlantDiseaseOutputSchema = z.object({
+  en: DiagnosisDetailSchema,
+  hi: DiagnosisDetailSchema,
+  ml: DiagnosisDetailSchema,
   confidenceScore: z.number().describe('A confidence score for the diagnosis, from 0 to 1.'),
 });
 export type DiagnosePlantDiseaseOutput = z.infer<typeof DiagnosePlantDiseaseOutputSchema>;
@@ -42,7 +48,10 @@ const prompt = ai.definePrompt({
   output: {schema: DiagnosePlantDiseaseOutputSchema},
   prompt: `You are an expert in plant pathology. A farmer needs help diagnosing a plant. 
   
-  Analyze the provided information and provide a diagnosis, suggested treatment, and a confidence score between 0 and 1.
+  Analyze the provided information and provide a diagnosis and detailed treatment suggestions. The treatment should include both chemical and organic options with clear instructions.
+  
+  Provide the output in three languages: English (en), Hindi (hi), and Malayalam (ml).
+  Also provide a confidence score for the diagnosis between 0 and 1.
   
   The farmer has provided the following:
   {{#if photoDataUri}}
