@@ -7,8 +7,6 @@
  * - GetWeatherInput - The input type for the getWeather function.
  * - GetWeatherOutput - The return type for the getWeather function.
  */
-import { config } from 'dotenv';
-config();
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
