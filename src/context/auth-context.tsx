@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User as FirebaseUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, addUserToFirestore, getUserFromFirestore, getAllUsersFromFirestore } from "@/lib/firebase";
+import { auth, addUserToFirestore, getUserFromFirestore, getAllUsersFromFirestore, db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 export type User = {
   uid: string;
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [allUsers, setAllUsers] = useState<Omit<User, 'isAdmin'>[]>([]);
   const router = useRouter();
 
+  // Effect for handling authentication state changes
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
@@ -50,20 +52,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     });
 
+    return () => unsubscribeAuth();
+  }, []);
+  
+  // Effect for fetching all users only when an admin is logged in
+  useEffect(() => {
     let unsubscribeUsers = () => {};
     if (user?.isAdmin) {
       unsubscribeUsers = getAllUsersFromFirestore((users) => {
         setAllUsers(users as Omit<User, 'isAdmin'>[]);
       });
     } else {
-        setAllUsers([]);
+      setAllUsers([]);
     }
 
-    return () => {
-      unsubscribeAuth();
-      unsubscribeUsers();
-    };
-  }, [user?.isAdmin]);
+    return () => unsubscribeUsers();
+  }, [user]);
+
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
@@ -85,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Use setDoc instead of addUserToFirestore to ensure the user doc is created with the UID
     await setDoc(doc(db, "users", uid), newUser);
+    // Setting user state locally to avoid waiting for another fetch
     setUser({ ...newUser, uid, isAdmin: email === ADMIN_EMAIL });
     router.push('/dashboard');
   };
