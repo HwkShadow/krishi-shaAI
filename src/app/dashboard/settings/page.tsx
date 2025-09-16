@@ -43,16 +43,6 @@ export default function SettingsPage() {
     const videoRef = React.useRef<HTMLVideoElement>(null);
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
-    React.useEffect(() => {
-        // Cleanup camera stream
-        return () => {
-            if (videoRef.current?.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
-                stream.getTracks().forEach(track => track.stop());
-            }
-        };
-    }, []);
-
     const form = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
         values: {
@@ -81,23 +71,14 @@ export default function SettingsPage() {
     };
 
     const onPasswordSubmit = (values: z.infer<typeof passwordSchema>) => {
-        const MOCK_CURRENT_PASSWORD = "password123";
-
-        if (values.currentPassword !== MOCK_CURRENT_PASSWORD) {
-            passwordForm.setError("currentPassword", {
-                type: "manual",
-                message: "Incorrect current password. Please try again.",
-            });
-            return;
-        }
-
-        console.log("Password changed successfully (simulated). New password:", values.newPassword);
-        passwordForm.reset();
-        setIsPasswordDialogOpen(false);
+        // This is a mock password change for demonstration
+        console.log("Password change requested", values);
         toast({
             title: "Password Changed",
             description: "Your password has been successfully updated."
         });
+        passwordForm.reset();
+        setIsPasswordDialogOpen(false);
     }
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,6 +110,14 @@ export default function SettingsPage() {
         }
     };
 
+    const stopCamera = () => {
+        if (videoRef.current?.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    }
+
     const takePicture = () => {
         if (videoRef.current && canvasRef.current) {
             const video = videoRef.current;
@@ -140,9 +129,7 @@ export default function SettingsPage() {
             const dataUrl = canvas.toDataURL('image/png');
             setPreviewImage(dataUrl);
             setCameraMode(false);
-            if (video.srcObject) {
-                (video.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-            }
+            stopCamera();
         }
     };
 
@@ -161,6 +148,15 @@ export default function SettingsPage() {
         toast({ title: 'Profile Picture Removed' });
         setIsPhotoDialogOpen(false);
     };
+
+    const resetPhotoDialog = (open: boolean) => {
+        if (!open) {
+            stopCamera();
+            setPreviewImage(null);
+            setCameraMode(false);
+        }
+        setIsPhotoDialogOpen(open);
+    }
 
     if (!user) {
         return (
@@ -187,7 +183,7 @@ export default function SettingsPage() {
                     </CardHeader>
                     <CardContent className="space-y-8">
                         <div className="flex items-center gap-6">
-                            <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
+                            <Dialog open={isPhotoDialogOpen} onOpenChange={resetPhotoDialog}>
                                 <DialogTrigger asChild>
                                     <button className="relative group">
                                         <Avatar className="h-24 w-24">
@@ -370,4 +366,5 @@ export default function SettingsPage() {
             </Dialog>
         </>
     );
-}
+
+    
