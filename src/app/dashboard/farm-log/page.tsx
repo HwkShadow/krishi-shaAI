@@ -65,7 +65,7 @@ export default function FarmLogPage() {
                 // Find the latest log with farm details if available
                 const latestLogWithDetails = logs.find(l => l.farmSize || l.soilType);
                 const planResult = await getFarmGrowthPlan({
-                    logs: logs.map(l => ({ ...l, date: l.date.toISOString() })),
+                    logs: logs.map(l => ({ ...l, date: l.date.toISOString(), activity: l.activity, crop: l.crop, notes: l.notes, id: l.id })),
                     farmDetails: {
                         size: latestLogWithDetails?.farmSize,
                         soilType: latestLogWithDetails?.soilType,
@@ -76,8 +76,8 @@ export default function FarmLogPage() {
                 console.error("Failed to fetch growth plan:", error);
                 toast({
                     variant: 'destructive',
-                    title: 'Could not fetch growth plan',
-                    description: 'There was an error generating your farm growth plan.'
+                    title: translate('couldNotFetchGrowthPlan', 'Could not fetch growth plan'),
+                    description: translate('errorGeneratingGrowthPlan', 'There was an error generating your farm growth plan.')
                 })
             } finally {
                 setIsPlanLoading(false);
@@ -87,12 +87,12 @@ export default function FarmLogPage() {
         }
     }
     fetchGrowthPlan();
-  }, [logs, toast]);
+  }, [logs, toast, translate]);
 
   async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
     addLog(newLog);
-    form.reset({ crop: '', notes: '', date: new Date(), farmSize: '', soilType: '' });
+    form.reset({ crop: '', notes: '', date: new Date(), farmSize: values.farmSize, soilType: values.soilType });
     setIsFormVisible(false);
 
     setIsSuggestionLoading(true);
@@ -107,8 +107,8 @@ export default function FarmLogPage() {
       console.error(e);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to get a suggestion. Please try again later.',
+        title: translate('error', 'Error'),
+        description: translate('failedToGetSuggestion', 'Failed to get a suggestion. Please try again later.'),
       });
       setShowSuggestionModal(false); // Close modal on error
     } finally {
@@ -120,8 +120,8 @@ export default function FarmLogPage() {
     if (logToDelete) {
         deleteLog(logToDelete);
         toast({
-            title: "Log Deleted",
-            description: "The farm activity log has been successfully deleted.",
+            title: translate('logDeleted', 'Log Deleted'),
+            description: translate('logDeletedSuccess', 'The farm activity log has been successfully deleted.'),
         });
         setLogToDelete(null);
     }
@@ -129,8 +129,8 @@ export default function FarmLogPage() {
 
   const handleSetReminder = (recommendation: string) => {
     toast({
-        title: "Reminder Set!",
-        description: `We will remind you to: "${recommendation.substring(0, 40)}..."`,
+        title: translate('reminderSet', 'Reminder Set!'),
+        description: `${translate('willRemindYou', "We will remind you to:")} "${recommendation.substring(0, 40)}..."`,
     });
   }
 
@@ -141,21 +141,21 @@ export default function FarmLogPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2">
                         <Lightbulb className="text-primary"/>
-                        Next Step Suggestion
+                        {translate('nextStepSuggestion', 'Next Step Suggestion')}
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         {isSuggestionLoading ? (
                             <span className="flex items-center gap-2 py-4">
                                 <Loader2 className="h-5 w-5 animate-spin"/>
-                                <span>Generating suggestion...</span>
+                                <span>{translate('generatingSuggestion', 'Generating suggestion...')}</span>
                             </span>
                         ) : (
-                            suggestion?.suggestion || "No suggestion available."
+                            suggestion?.suggestion || translate('noSuggestionAvailable', "No suggestion available.")
                         )}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogAction onClick={() => setShowSuggestionModal(false)}>Close</AlertDialogAction>
+                    <AlertDialogAction onClick={() => setShowSuggestionModal(false)}>{translate('close', 'Close')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -163,14 +163,14 @@ export default function FarmLogPage() {
         <AlertDialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogTitle>{translate('areYouSure', 'Are you sure?')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the farm log entry.
+                        {translate('deleteLogConfirmation', 'This action cannot be undone. This will permanently delete the farm log entry.')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setLogToDelete(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setLogToDelete(null)}>{translate('cancel', 'Cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>{translate('delete', 'Delete')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -183,7 +183,7 @@ export default function FarmLogPage() {
             <div className="flex gap-2">
                 <Button onClick={() => setIsFormVisible(!isFormVisible)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    {isFormVisible ? translate('cancel', 'Cancel') : 'Add New Log'}
+                    {isFormVisible ? translate('cancel', 'Cancel') : translate('addNewLog', 'Add New Log')}
                 </Button>
             </div>
         </div>
@@ -191,8 +191,8 @@ export default function FarmLogPage() {
       {isFormVisible && (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">New Log Entry</CardTitle>
-                <CardDescription>Record a new activity on your farm. You'll get an AI-powered suggestion for what to do next.</CardDescription>
+                <CardTitle className="font-headline">{translate('newLogEntry', 'New Log Entry')}</CardTitle>
+                <CardDescription>{translate('newLogDescription', "Record a new activity on your farm. You'll get an AI-powered suggestion for what to do next.")}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -201,10 +201,10 @@ export default function FarmLogPage() {
                         <div className="space-y-6">
                             <FormField control={form.control} name="activity" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Activity</FormLabel>
+                                    <FormLabel>{translate('activity', 'Activity')}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                            <SelectTrigger><SelectValue placeholder="Select an activity" /></SelectTrigger>
+                                            <SelectTrigger><SelectValue placeholder={translate('selectActivity', 'Select an activity')} /></SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
                                             {activityOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
@@ -215,38 +215,38 @@ export default function FarmLogPage() {
                             )}/>
                             <FormField control={form.control} name="crop" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Crop</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Wheat, Rice" {...field} /></FormControl>
+                                    <FormLabel>{translate('crop', 'Crop')}</FormLabel>
+                                    <FormControl><Input placeholder={translate('cropPlaceholder', 'e.g., Wheat, Rice')} {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}/>
                             <div className="grid grid-cols-2 gap-4">
                                <FormField control={form.control} name="farmSize" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Farm Size (Optional)</FormLabel>
-                                        <FormControl><Input placeholder="e.g., 5 acres" {...field} /></FormControl>
+                                        <FormLabel>{translate('farmSizeOptional', 'Farm Size (Optional)')}</FormLabel>
+                                        <FormControl><Input placeholder={translate('farmSizePlaceholder', 'e.g., 5 acres')} {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
                                  <FormField control={form.control} name="soilType" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Soil Type (Optional)</FormLabel>
-                                        <FormControl><Input placeholder="e.g., Loamy" {...field} /></FormControl>
+                                        <FormLabel>{translate('soilTypeOptional', 'Soil Type (Optional)')}</FormLabel>
+                                        <FormControl><Input placeholder={translate('soilTypePlaceholder', 'e.g., Loamy')} {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
                             </div>
                             <FormField control={form.control} name="notes" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Notes (optional)</FormLabel>
-                                    <FormControl><Textarea placeholder="Any additional details..." {...field} /></FormControl>
+                                    <FormLabel>{translate('notesOptional', 'Notes (optional)')}</FormLabel>
+                                    <FormControl><Textarea placeholder={translate('notesPlaceholder', 'Any additional details...')} {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}/>
                         </div>
                          <FormField control={form.control} name="date" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Date of Activity</FormLabel>
+                                <FormLabel>{translate('dateOfActivity', 'Date of Activity')}</FormLabel>
                                 <FormControl>
                                    <Card>
                                       <Calendar 
@@ -266,7 +266,7 @@ export default function FarmLogPage() {
                     <div className="flex justify-end gap-2 pt-4">
                          <Button type="button" variant="outline" onClick={() => { setIsFormVisible(false); form.reset(); }}>{translate('cancel', 'Cancel')}</Button>
                          <Button type="submit">
-                            Save Log
+                            {translate('saveLog', 'Save Log')}
                         </Button>
                     </div>
                 </form>
@@ -278,14 +278,14 @@ export default function FarmLogPage() {
         {logs.length > 2 && (
              <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-2"><Sparkles className="text-primary"/> Farm Growth Plan</CardTitle>
-                    <CardDescription>Based on your activity logs, here are prioritized recommendations to improve your farm's health and yield.</CardDescription>
+                    <CardTitle className="font-headline flex items-center gap-2"><Sparkles className="text-primary"/> {translate('farmGrowthPlan', 'Farm Growth Plan')}</CardTitle>
+                    <CardDescription>{translate('growthPlanDescription', "Based on your activity logs, here are prioritized recommendations to improve your farm's health and yield.")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isPlanLoading ? (
                         <div className="flex items-center justify-center h-40 gap-2">
                             <Loader2 className="h-6 w-6 animate-spin"/>
-                            <span>Analyzing your farm data...</span>
+                            <span>{translate('analyzingData', 'Analyzing your farm data...')}</span>
                         </div>
                     ) : growthPlan && growthPlan.plan.length > 0 ? (
                         <div className="space-y-4">
@@ -302,12 +302,12 @@ export default function FarmLogPage() {
                                         <div className="flex items-center justify-between pt-2 border-t">
                                             <div className="text-xs text-muted-foreground">
                                                 {item.suggestedActionDate && (
-                                                    <p>Suggested Action Date: <span className="font-semibold">{format(new Date(item.suggestedActionDate), 'PPP')}</span></p>
+                                                    <p>{translate('suggestedActionDate', 'Suggested Action Date')}: <span className="font-semibold">{format(new Date(item.suggestedActionDate), 'PPP')}</span></p>
                                                 )}
                                             </div>
                                             <Button size="sm" variant="outline" onClick={() => handleSetReminder(item.recommendation)}>
                                                 <BellRing className="mr-2 h-4 w-4"/>
-                                                Set Reminder
+                                                {translate('setReminder', 'Set Reminder')}
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -316,7 +316,7 @@ export default function FarmLogPage() {
                         </div>
                     ) : (
                          <div className="flex items-center justify-center h-40 gap-2 text-muted-foreground">
-                            <span>Could not generate a growth plan. Add more logs or check back later.</span>
+                            <span>{translate('couldNotGenerateGrowthPlan', 'Could not generate a growth plan. Add more logs or check back later.')}</span>
                         </div>
                     )}
                 </CardContent>
@@ -325,17 +325,17 @@ export default function FarmLogPage() {
 
       <Card>
         <CardHeader>
-            <CardTitle className="font-headline">Activity History</CardTitle>
+            <CardTitle className="font-headline">{translate('activityHistory', 'Activity History')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Activity</TableHead>
-                <TableHead>Crop</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{translate('activity', 'Activity')}</TableHead>
+                <TableHead>{translate('crop', 'Crop')}</TableHead>
+                <TableHead>{translate('date', 'Date')}</TableHead>
+                <TableHead>{translate('notes', 'Notes')}</TableHead>
+                <TableHead className="text-right">{translate('actions', 'Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -353,7 +353,7 @@ export default function FarmLogPage() {
                   </TableCell>
                 </TableRow>
               )) : (
-                <TableRow><TableCell colSpan={5} className="text-center">No logs found. Add 3 or more logs to generate a growth plan.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center">{translate('noLogsFound', 'No logs found. Add 3 or more logs to generate a growth plan.')}</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
