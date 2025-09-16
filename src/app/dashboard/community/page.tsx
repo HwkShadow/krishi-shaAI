@@ -3,10 +3,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, PlusCircle, ThumbsUp, Users, MoreVertical, Edit, Trash2, Loader2 } from "lucide-react";
+import { MessageSquare, PlusCircle, ThumbsUp, Users, MoreVertical, Edit, Trash2, Loader2, Newspaper } from "lucide-react";
 import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
 import { useLocalization } from "@/context/localization-context";
@@ -14,6 +14,9 @@ import { useCommunity, Discussion, TranslatedContent } from "@/context/community
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { getLocalNews, GetLocalNewsOutput } from "@/ai/flows/get-local-news-flow";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { format, parseISO } from "date-fns";
 
 export default function CommunityPage() {
   const { user } = useAuth();
@@ -32,7 +35,31 @@ export default function CommunityPage() {
   // State for delete confirmation
   const [discussionToDelete, setDiscussionToDelete] = useState<string | null>(null);
   const [commentToDelete, setCommentToDelete] = useState<{discussionId: string, commentIndex: number} | null>(null);
+
+  // State for news
+  const [news, setNews] = useState<GetLocalNewsOutput | null>(null);
+  const [isNewsLoading, setIsNewsLoading] = useState(true);
   
+  useEffect(() => {
+    async function fetchNews() {
+        if (!user?.location) {
+            setIsNewsLoading(false);
+            return;
+        }
+        setIsNewsLoading(true);
+        try {
+            const newsResult = await getLocalNews({ location: user.location });
+            setNews(newsResult);
+        } catch (error) {
+            console.error("Failed to fetch news:", error);
+        } finally {
+            setIsNewsLoading(false);
+        }
+    }
+    fetchNews();
+  }, [user?.location]);
+
+
   const handleAddComment = (discussionId: string) => {
     const text = commentInputs[discussionId];
     if (!text || !user) return;
@@ -124,6 +151,45 @@ export default function CommunityPage() {
         </Button>
       </div>
       
+       {(isNewsLoading || (news && news.articles.length > 0)) && (
+            <Card>
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="news">
+                        <AccordionTrigger className="px-6">
+                            <div className="flex items-center gap-3">
+                                <Newspaper className="text-primary"/>
+                                <div className="text-left">
+                                    <h3 className="font-semibold text-lg">Latest News</h3>
+                                    <p className="text-sm text-muted-foreground">Top agricultural headlines for {user?.location || 'your area'}</p>
+                                </div>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6">
+                             {isNewsLoading ? (
+                                <div className="flex items-center justify-center h-24">
+                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {news?.articles.map((article, index) => (
+                                        <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
+                                            <a href={article.url} target="_blank" rel="noopener noreferrer" className="font-bold hover:underline">{article.title}</a>
+                                            <p className="text-sm text-muted-foreground mt-1">{article.summary}</p>
+                                            <div className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
+                                                <span>{article.source}</span>
+                                                <span>&middot;</span>
+                                                <span>{format(parseISO(article.publishedAt), 'PPP')}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </Card>
+        )}
+
       {isCreating && (
         <Card>
           <CardHeader>
