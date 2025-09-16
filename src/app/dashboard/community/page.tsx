@@ -48,7 +48,7 @@ export default function CommunityPage() {
         }
         setIsNewsLoading(true);
         try {
-            const newsResult = await getLocalNews({ location: user.location });
+            const newsResult = await getLocalNews({ location: user.location, language });
             setNews(newsResult);
         } catch (error) {
             console.error("Failed to fetch news:", error);
@@ -57,7 +57,7 @@ export default function CommunityPage() {
         }
     }
     fetchNews();
-  }, [user?.location]);
+  }, [user?.location, language]);
 
 
   const handleAddComment = (discussionId: string) => {
@@ -94,6 +94,11 @@ export default function CommunityPage() {
   const getTranslatedContent = (content: TranslatedContent) => {
       return content[language] || content.en;
   }
+  
+  const getTranslatedNewsContent = (content: TranslatedContent) => {
+      return content[language] || content.en;
+  }
+
 
   return (
     <div className="space-y-6">
@@ -173,8 +178,8 @@ export default function CommunityPage() {
                                 <div className="space-y-4">
                                     {news?.articles.map((article, index) => (
                                         <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
-                                            <a href={article.url} target="_blank" rel="noopener noreferrer" className="font-bold hover:underline">{article.title}</a>
-                                            <p className="text-sm text-muted-foreground mt-1">{article.summary}</p>
+                                            <a href={article.url} target="_blank" rel="noopener noreferrer" className="font-bold hover:underline">{getTranslatedNewsContent(article.title)}</a>
+                                            <p className="text-sm text-muted-foreground mt-1">{getTranslatedNewsContent(article.summary)}</p>
                                             <div className="text-xs text-muted-foreground mt-2 flex items-center gap-2">
                                                 <span>{article.source}</span>
                                                 <span>&middot;</span>

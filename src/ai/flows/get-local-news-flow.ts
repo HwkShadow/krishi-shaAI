@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Fetches localized agricultural news.
+ * @fileOverview Fetches localized agricultural news in multiple languages.
  *
  * - getLocalNews - A function that returns a list of news articles.
  * - GetLocalNewsInput - The input type for the getLocalNews function.
@@ -13,12 +13,19 @@ import {z} from 'genkit';
 
 const GetLocalNewsInputSchema = z.object({
   location: z.string().describe('The location to fetch news for (e.g., city, state).'),
+  language: z.enum(['en', 'hi', 'ml']).optional().describe('The preferred language for the news articles.'),
 });
 export type GetLocalNewsInput = z.infer<typeof GetLocalNewsInputSchema>;
 
+const TranslatedContentSchema = z.object({
+    en: z.string().describe('The English version of the content.'),
+    hi: z.string().describe('The Hindi version of the content.'),
+    ml: z.string().describe('The Malayalam version of the content.'),
+});
+
 const NewsArticleSchema = z.object({
-    title: z.string().describe("The headline of the news article."),
-    summary: z.string().describe("A brief summary of the news article."),
+    title: TranslatedContentSchema.describe("The headline of the news article in English, Hindi, and Malayalam."),
+    summary: TranslatedContentSchema.describe("A brief summary of the news article in English, Hindi, and Malayalam."),
     source: z.string().describe("The source of the news (e.g., a publication name)."),
     url: z.string().url().describe("The URL to the full article."),
     publishedAt: z.string().describe("The publication date in ISO 8601 format."),
@@ -42,7 +49,10 @@ const prompt = ai.definePrompt({
 
   Focus on topics like new government schemes, crop price updates, weather advisories, new farming techniques, or pest alerts relevant to the region.
   
-  For each article, provide a realistic title, a concise summary, a plausible source (like a real Indian newspaper or agricultural board), a fictional but valid URL, and a recent publication date within the last week.`,
+  For each article, provide a realistic title, a concise summary, a plausible source (like a real Indian newspaper or agricultural board), a fictional but valid URL, and a recent publication date within the last week.
+  
+  IMPORTANT: Generate the 'title' and 'summary' for each article in all three languages: English (en), Hindi (hi), and Malayalam (ml).
+  The user's preferred language is {{language}}, but you must provide all three translations.`,
 });
 
 const getLocalNewsFlow = ai.defineFlow(
