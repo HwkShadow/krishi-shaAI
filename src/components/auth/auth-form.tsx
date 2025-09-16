@@ -79,12 +79,12 @@ export function AuthForm({ mode }: AuthFormProps) {
       <div className="grid lg:grid-cols-2 max-w-6xl w-full">
         <div className="hidden lg:flex flex-col items-center justify-center bg-primary/10 rounded-l-lg p-8 text-center">
             <Image 
-                src="https://picsum.photos/seed/farmer/800/1000"
+                src="https://picsum.photos/seed/agriculture/800/1000"
                 width={800}
                 height={1000}
                 alt="Farmer in a field"
                 className="w-full h-full object-cover rounded-md"
-                data-ai-hint="farmer field"
+                data-ai-hint="agriculture technology"
             />
         </div>
         <Card className="rounded-r-lg rounded-l-lg lg:rounded-l-none border-l-0">
