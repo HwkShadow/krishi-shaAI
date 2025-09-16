@@ -3,14 +3,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useAuth } from "./auth-context";
-import { 
-    addDiscussionToFirestore, 
-    addCommentToFirestore, 
-    toggleLikeInFirestore, 
-    getDiscussions,
-    deleteDiscussionFromFirestore,
-    updateDiscussionInFirestore
-} from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { translateText } from "@/ai/flows/translate-text-flow";
 
@@ -52,21 +44,47 @@ type CommunityContextType = {
   isPending: boolean;
 };
 
+const initialDiscussions: Discussion[] = [
+    {
+        id: '1',
+        title: { en: 'Best pesticide for wheat rust?', hi: 'गेहूं के रस्ट के लिए सबसे अच्छा कीटनाशक कौन सा है?', ml: 'ഗോതമ്പ് തുരുമ്പിന് ഏറ്റവും നല്ല കീടനാശിനി ഏതാണ്?' },
+        authorName: 'Ramesh Kumar',
+        authorEmail: 'ramesh@example.com',
+        authorAvatar: 'https://picsum.photos/seed/ramesh/40',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        tag: 'Wheat',
+        comments: [],
+        likes: ['sita@example.com']
+    },
+    {
+        id: '2',
+        title: { en: 'Question about monsoon soil preparation', hi: 'मानसून मिट्टी की तैयारी के बारे में प्रश्न', ml: 'മൺസൂൺ മണ്ണ് ഒരുക്കുന്നതിനെക്കുറിച്ചുള്ള ചോദ്യം' },
+        authorName: 'Sita Devi',
+        authorEmail: 'sita@example.com',
+        authorAvatar: 'https://picsum.photos/seed/sita/40',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        tag: 'Soil',
+        comments: [
+            {
+                authorName: 'Ramesh Kumar',
+                authorEmail: 'ramesh@example.com',
+                authorAvatar: 'https://picsum.photos/seed/ramesh/40',
+                text: { en: 'Good question! I am also interested.', hi: 'अच्छा सवाल! मुझे भी दिलचस्पी है।', ml: 'നല്ല ചോദ്യം! എനിക്കും താല്പര്യമുണ്ട്.' },
+                createdAt: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
+            }
+        ],
+        likes: ['ramesh@example.com', 'priya@example.com']
+    }
+];
+
+
 const CommunityContext = createContext<CommunityContextType | undefined>(undefined);
 
 export function CommunityProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [discussions, setDiscussions] = useState<Discussion[]>(initialDiscussions);
   const [isPending, setIsPending] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = getDiscussions((newDiscussions) => {
-      setDiscussions(newDiscussions as Discussion[]);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const addDiscussion = async (data: { title: string; tag?: string }) => {
     if (!user) {
@@ -77,7 +95,8 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     try {
       const translatedTitle = await translateText({ text: data.title });
 
-      const newDiscussion = {
+      const newDiscussion: Discussion = {
+        id: Date.now().toString(),
         title: {
           en: translatedTitle.en,
           hi: translatedTitle.hi,
@@ -91,7 +110,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         comments: [],
         likes: [],
       };
-      await addDiscussionToFirestore(newDiscussion);
+      setDiscussions(prev => [newDiscussion, ...prev]);
       toast({ title: "Discussion started successfully!" });
     } catch (error) {
       toast({ variant: "destructive", title: "Error starting discussion." });
@@ -121,7 +140,11 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
             },
             createdAt: new Date().toISOString(),
         };
-        await addCommentToFirestore(discussionId, newComment);
+        
+        setDiscussions(prev => prev.map(d => 
+            d.id === discussionId ? { ...d, comments: [...d.comments, newComment] } : d
+        ));
+
     } catch (error) {
         toast({ variant: "destructive", title: "Error adding comment."});
         console.error(error);
@@ -135,42 +158,42 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       toast({ variant: "destructive", title: "You must be logged in to like posts." });
       return;
     }
-    const discussion = discussions.find(d => d.id === discussionId);
-    if (!discussion) return;
-
-    const isLiked = discussion.likes.includes(userId);
-
-    try {
-        await toggleLikeInFirestore(discussionId, userId, isLiked);
-    } catch(error) {
-        toast({ variant: "destructive", title: "Error updating like."});
-        console.error(error);
-    }
+    
+    setDiscussions(prev => prev.map(d => {
+        if (d.id === discussionId) {
+            const isLiked = d.likes.includes(userId);
+            const newLikes = isLiked ? d.likes.filter(id => id !== userId) : [...d.likes, userId];
+            return { ...d, likes: newLikes };
+        }
+        return d;
+    }));
   };
 
   const deleteDiscussion = async (discussionId: string) => {
-      try {
-        await deleteDiscussionFromFirestore(discussionId);
-        toast({ title: "Discussion deleted."});
-      } catch (error) {
-        toast({ variant: "destructive", title: "Error deleting discussion."});
-        console.error(error);
-      }
+      setDiscussions(prev => prev.filter(d => d.id !== discussionId));
+      toast({ title: "Discussion deleted."});
   }
 
   const editDiscussion = async (discussionId: string, newTitle: string, newTag?: string) => {
       setIsPending(true);
       try {
         const translatedTitle = await translateText({ text: newTitle });
-        const updates = {
-            title: {
-                en: translatedTitle.en,
-                hi: translatedTitle.hi,
-                ml: translatedTitle.ml,
-            },
-            tag: newTag || ''
-        }
-        await updateDiscussionInFirestore(discussionId, updates);
+        
+        setDiscussions(prev => prev.map(d => {
+            if (d.id === discussionId) {
+                return {
+                    ...d,
+                    title: {
+                        en: translatedTitle.en,
+                        hi: translatedTitle.hi,
+                        ml: translatedTitle.ml,
+                    },
+                    tag: newTag
+                }
+            }
+            return d;
+        }));
+        
         toast({ title: "Discussion updated."});
       } catch (error) {
         toast({ variant: "destructive", title: "Error updating discussion."});
@@ -181,40 +204,39 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
   }
 
   const deleteComment = async (discussionId: string, commentIndex: number) => {
-    const discussion = discussions.find(d => d.id === discussionId);
-    if(!discussion) return;
-
-    const updatedComments = [...discussion.comments];
-    updatedComments.splice(commentIndex, 1);
-    
-    try {
-      await updateDiscussionInFirestore(discussionId, { comments: updatedComments });
-      toast({ title: "Comment deleted." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error deleting comment." });
-      console.error(error);
-    }
+    setDiscussions(prev => prev.map(d => {
+        if (d.id === discussionId) {
+            const updatedComments = [...d.comments];
+            updatedComments.splice(commentIndex, 1);
+            return { ...d, comments: updatedComments };
+        }
+        return d;
+    }));
+    toast({ title: "Comment deleted." });
   };
   
   const editComment = async (discussionId: string, commentIndex: number, newText: string) => {
-    const discussion = discussions.find(d => d.id === discussionId);
-    if (!discussion) return;
-  
     setIsPending(true);
     try {
         const translatedText = await translateText({ text: newText });
-        const updatedComments = [...discussion.comments];
-        const oldComment = updatedComments[commentIndex];
-        updatedComments[commentIndex] = { 
-            ...oldComment, 
-            text: {
-                en: translatedText.en,
-                hi: translatedText.hi,
-                ml: translatedText.ml,
+
+        setDiscussions(prev => prev.map(d => {
+            if (d.id === discussionId) {
+                const updatedComments = [...d.comments];
+                const oldComment = updatedComments[commentIndex];
+                updatedComments[commentIndex] = {
+                    ...oldComment,
+                    text: {
+                        en: translatedText.en,
+                        hi: translatedText.hi,
+                        ml: translatedText.ml,
+                    }
+                };
+                return { ...d, comments: updatedComments };
             }
-        };
-    
-        await updateDiscussionInFirestore(discussionId, { comments: updatedComments });
+            return d;
+        }));
+        
         toast({ title: "Comment updated." });
     } catch (error) {
       toast({ variant: "destructive", title: "Error updating comment." });
