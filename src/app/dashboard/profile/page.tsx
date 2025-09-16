@@ -66,8 +66,17 @@ export default function ProfilePage() {
     };
 
     const onPasswordSubmit = (values: z.infer<typeof passwordSchema>) => {
-        // In a real app, you would verify the current password and then update it.
-        // For this demo, we'll just show a success message.
+        // In a real app, you'd verify this against a backend. For demo, we hardcode it.
+        const MOCK_CURRENT_PASSWORD = "password123";
+
+        if (values.currentPassword !== MOCK_CURRENT_PASSWORD) {
+            passwordForm.setError("currentPassword", {
+                type: "manual",
+                message: "Incorrect current password. Please try again.",
+            });
+            return;
+        }
+
         console.log(values);
         passwordForm.reset();
         setIsPasswordDialogOpen(false);
@@ -257,7 +266,7 @@ export default function ProfilePage() {
                                 )}
                             />
                              <DialogFooter>
-                                <Button variant="outline" type="button" onClick={() => setIsPasswordDialogOpen(false)}>Cancel</Button>
+                                <Button variant="outline" type="button" onClick={() => { setIsPasswordDialogOpen(false); passwordForm.reset();}}>Cancel</Button>
                                 <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
                                      {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Change Password
@@ -270,3 +279,5 @@ export default function ProfilePage() {
         </>
     );
 }
+
+    
