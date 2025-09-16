@@ -28,6 +28,8 @@ const logSchema = z.object({
   crop: z.string().min(1, 'Crop name is required'),
   date: z.date({ required_error: 'A date is required.' }),
   notes: z.string().optional(),
+  farmSize: z.string().optional(),
+  soilType: z.string().optional(),
 });
 
 type LogEntry = z.infer<typeof logSchema> & { id: string };
@@ -51,16 +53,23 @@ export default function FarmLogPage() {
 
   const form = useForm<z.infer<typeof logSchema>>({
     resolver: zodResolver(logSchema),
-    defaultValues: { crop: '', notes: '', date: new Date() },
+    defaultValues: { crop: '', notes: '', date: new Date(), farmSize: '', soilType: '' },
   });
 
   useEffect(() => {
     async function fetchGrowthPlan() {
         if (logs.length > 2) {
             setIsPlanLoading(true);
+            setGrowthPlan(null); // Reset plan while fetching new one
             try {
+                // Find the latest log with farm details if available
+                const latestLogWithDetails = logs.find(l => l.farmSize || l.soilType);
                 const planResult = await getFarmGrowthPlan({
                     logs: logs.map(l => ({ ...l, date: l.date.toISOString() })),
+                    farmDetails: {
+                        size: latestLogWithDetails?.farmSize,
+                        soilType: latestLogWithDetails?.soilType,
+                    }
                 });
                 setGrowthPlan(planResult);
             } catch (error) {
@@ -83,7 +92,7 @@ export default function FarmLogPage() {
   async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
     addLog(newLog);
-    form.reset({ crop: '', notes: '', date: new Date() });
+    form.reset({ crop: '', notes: '', date: new Date(), farmSize: '', soilType: '' });
     setIsFormVisible(false);
 
     setIsSuggestionLoading(true);
@@ -211,6 +220,22 @@ export default function FarmLogPage() {
                                     <FormMessage />
                                 </FormItem>
                             )}/>
+                            <div className="grid grid-cols-2 gap-4">
+                               <FormField control={form.control} name="farmSize" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Farm Size (Optional)</FormLabel>
+                                        <FormControl><Input placeholder="e.g., 5 acres" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                 <FormField control={form.control} name="soilType" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Soil Type (Optional)</FormLabel>
+                                        <FormControl><Input placeholder="e.g., Loamy" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                            </div>
                             <FormField control={form.control} name="notes" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Notes (optional)</FormLabel>
@@ -291,7 +316,7 @@ export default function FarmLogPage() {
                         </div>
                     ) : (
                          <div className="flex items-center justify-center h-40 gap-2 text-muted-foreground">
-                            <span>Could not generate a growth plan. Please check back later.</span>
+                            <span>Could not generate a growth plan. Add more logs or check back later.</span>
                         </div>
                     )}
                 </CardContent>
