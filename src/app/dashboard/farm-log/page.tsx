@@ -73,10 +73,12 @@ export default function FarmLogPage() {
             } finally {
                 setIsPlanLoading(false);
             }
+        } else {
+            setGrowthPlan(null);
         }
     }
     fetchGrowthPlan();
-  }, [logs, toast]);
+  }, [logs.length, toast]);
 
   async function onSubmit(values: z.infer<typeof logSchema>) {
     const newLog: LogEntry = { ...values, id: Date.now().toString() };
@@ -248,7 +250,7 @@ export default function FarmLogPage() {
         </Card>
       )}
 
-        {(isPlanLoading || growthPlan) && (
+        {logs.length > 2 && (
              <Card>
                 <CardHeader>
                     <CardTitle className="font-headline flex items-center gap-2"><Sparkles className="text-primary"/> Farm Growth Plan</CardTitle>
@@ -260,9 +262,9 @@ export default function FarmLogPage() {
                             <Loader2 className="h-6 w-6 animate-spin"/>
                             <span>Analyzing your farm data...</span>
                         </div>
-                    ) : (
+                    ) : growthPlan && growthPlan.plan.length > 0 ? (
                         <div className="space-y-4">
-                            {growthPlan?.plan.map((item, index) => (
+                            {growthPlan.plan.map((item, index) => (
                                 <Card key={index} className="bg-muted/30">
                                     <CardHeader className="pb-3">
                                         <div className="flex justify-between items-start gap-4">
@@ -286,6 +288,10 @@ export default function FarmLogPage() {
                                     </CardContent>
                                 </Card>
                             ))}
+                        </div>
+                    ) : (
+                         <div className="flex items-center justify-center h-40 gap-2 text-muted-foreground">
+                            <span>Could not generate a growth plan. Please check back later.</span>
                         </div>
                     )}
                 </CardContent>
