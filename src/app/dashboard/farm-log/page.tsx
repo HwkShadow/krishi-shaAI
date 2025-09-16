@@ -134,10 +134,10 @@ export default function FarmLogPage() {
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         {isSuggestionLoading ? (
-                            <div className="flex items-center gap-2 py-4">
+                            <span className="flex items-center gap-2 py-4">
                                 <Loader2 className="h-5 w-5 animate-spin"/>
                                 <span>Generating suggestion...</span>
-                            </div>
+                            </span>
                         ) : (
                             suggestion?.suggestion || "No suggestion available."
                         )}
