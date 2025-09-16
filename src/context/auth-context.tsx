@@ -65,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const existingUsers: Omit<User, 'isAdmin'>[] = JSON.parse(localStorage.getItem("allUsers") || "[]");
     let userToLogin = existingUsers.find(u => u.email === email);
     let userPayload: User;
+    let newAllUsers: Omit<User, 'isAdmin'>[] = [...existingUsers];
 
     if (userToLogin) {
         // Existing user
@@ -79,11 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isAdmin,
             memberSince
         };
-        const newAllUsers = [...existingUsers, { name: userPayload.name, email: userPayload.email, location: userPayload.location, memberSince: userPayload.memberSince }];
-        localStorage.setItem("allUsers", JSON.stringify(newAllUsers));
-        setAllUsers(newAllUsers);
+        newAllUsers.push({ name: userPayload.name, email: userPayload.email, location: userPayload.location, memberSince: userPayload.memberSince });
     }
     
+    localStorage.setItem("allUsers", JSON.stringify(newAllUsers));
+    setAllUsers(newAllUsers);
+
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("user", JSON.stringify(userPayload));
     
@@ -114,6 +116,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const updatedUser = {...user, ...data};
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        // Also update the user in the allUsers list
+        const existingUsers: Omit<User, 'isAdmin'>[] = JSON.parse(localStorage.getItem("allUsers") || "[]");
+        const userIndex = existingUsers.findIndex(u => u.email === user.email);
+        if (userIndex !== -1) {
+            const updatedAllUsers = [...existingUsers];
+            updatedAllUsers[userIndex] = {
+                ...updatedAllUsers[userIndex],
+                name: updatedUser.name,
+                location: updatedUser.location || updatedAllUsers[userIndex].location,
+            };
+            setAllUsers(updatedAllUsers);
+            localStorage.setItem("allUsers", JSON.stringify(updatedAllUsers));
+        }
     }
   }
 
