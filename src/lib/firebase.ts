@@ -14,7 +14,8 @@ import {
     orderBy,
     onSnapshot,
     getDoc,
-    setDoc
+    setDoc,
+    writeBatch
 } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -76,6 +77,16 @@ export const toggleLikeInFirestore = async (discussionId: string, userId: string
     return await updateDoc(discussionRef, {
         likes: isLiked ? arrayRemove(userId) : arrayUnion(userId)
     });
+}
+
+export const updateCommentInFirestore = async (discussionId: string, oldComment: any, newComment: any) => {
+    const batch = writeBatch(db);
+    const discussionRef = doc(db, 'discussions', discussionId);
+
+    batch.update(discussionRef, { comments: arrayRemove(oldComment) });
+    batch.update(discussionRef, { comments: arrayUnion(newComment) });
+
+    await batch.commit();
 }
 
 

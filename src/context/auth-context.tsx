@@ -1,10 +1,8 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, User as FirebaseUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, addUserToFirestore, getUserFromFirestore, getAllUsersFromFirestore, db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
 
 export type User = {
   uid: string;
@@ -29,74 +27,66 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock user data for demonstration
+const mockUsers: User[] = [
+  { uid: '1', name: 'Admin User', email: 'admin@example.com', location: 'Delhi, India', isAdmin: true, memberSince: '2023-01-15T10:00:00Z' },
+  { uid: '2', name: 'Ramesh Kumar', email: 'ramesh@example.com', location: 'Punjab, India', isAdmin: false, memberSince: '2023-02-20T11:30:00Z' },
+  { uid: '3', name: 'Sita Devi', email: 'sita@example.com', location: 'Kerala, India', isAdmin: false, memberSince: '2023-03-10T09:00:00Z' },
+];
+
 const ADMIN_EMAIL = 'admin@example.com';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [allUsers, setAllUsers] = useState<Omit<User, 'isAdmin'>[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>(mockUsers);
   const router = useRouter();
 
-  // Effect for handling authentication state changes
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      if (firebaseUser) {
-        const userData = await getUserFromFirestore(firebaseUser.uid);
-        if (userData) {
-          const fetchedUser = { ...userData, isAdmin: userData.email === ADMIN_EMAIL } as User;
-          setUser(fetchedUser);
-        }
-      } else {
-        setUser(null);
+    // Simulate checking for a logged-in user
+    const loggedInUserEmail = localStorage.getItem('loggedInUser');
+    if (loggedInUserEmail) {
+      const foundUser = allUsers.find(u => u.email === loggedInUserEmail);
+      if (foundUser) {
+        setUser(foundUser);
       }
-      setIsLoading(false);
-    });
-
-    return () => unsubscribeAuth();
-  }, []);
-  
-  // Effect for fetching all users only when an admin is logged in
-  useEffect(() => {
-    let unsubscribeUsers = () => {};
-    if (user?.isAdmin) {
-      unsubscribeUsers = getAllUsersFromFirestore((users) => {
-        setAllUsers(users as Omit<User, 'isAdmin'>[]);
-      });
-    } else {
-      setAllUsers([]);
     }
-
-    return () => unsubscribeUsers();
-  }, [user]);
-
+    setIsLoading(false);
+  }, [allUsers]);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged will handle setting the user
-    router.push('/dashboard');
+    const foundUser = allUsers.find(u => u.email === email);
+    if (foundUser) {
+      // In a real app, you'd verify the password here
+      setUser(foundUser);
+      localStorage.setItem('loggedInUser', email);
+      router.push('/dashboard');
+    } else {
+      throw new Error("User not found");
+    }
   };
 
   const signup = async (name: string, email: string, password: string, location: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const { uid } = userCredential.user;
-    const memberSince = new Date().toISOString();
-    
-    const newUser = {
+    if (allUsers.some(u => u.email === email)) {
+      throw new Error("Email already in use");
+    }
+    const newUser: User = {
+      uid: (allUsers.length + 1).toString(),
       name,
       email,
       location,
-      memberSince,
+      isAdmin: email === ADMIN_EMAIL,
+      memberSince: new Date().toISOString(),
     };
-
-    // Use setDoc instead of addUserToFirestore to ensure the user doc is created with the UID
-    await setDoc(doc(db, "users", uid), newUser);
-    // Setting user state locally to avoid waiting for another fetch
-    setUser({ ...newUser, uid, isAdmin: email === ADMIN_EMAIL });
+    setAllUsers(prev => [...prev, newUser]);
+    setUser(newUser);
+    localStorage.setItem('loggedInUser', email);
     router.push('/dashboard');
   };
 
   const logout = async () => {
-    await signOut(auth);
+    setUser(null);
+    localStorage.removeItem('loggedInUser');
     router.push("/");
   };
   
@@ -104,18 +94,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const updatedUser = { ...user, location: newLocation };
       setUser(updatedUser);
-      // Use setDoc with merge:true to update or create
-      setDoc(doc(db, "users", user.uid), { location: newLocation }, { merge: true });
+      setAllUsers(prev => prev.map(u => u.uid === user.uid ? updatedUser : u));
     }
   };
-  
-  const updateUser = (data: Partial<User>) => {
-    if(user) {
-        const updatedUser = {...user, ...data};
-        setUser(updatedUser);
-        // Use setDoc with merge:true to update or create
-        setDoc(doc(db, "users", user.uid), data, { merge: true });
-    }
+
+  const updateUser = (data: Partial<Omit<User, 'uid'>>) => {
+      if(user) {
+          const updatedUser = {...user, ...data };
+          setUser(updatedUser);
+          setAllUsers(prev => prev.map(u => u.uid === user.uid ? updatedUser : u));
+      }
   }
 
   const isAuthenticated = !!user;
