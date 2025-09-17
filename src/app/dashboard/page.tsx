@@ -17,6 +17,8 @@ import { useLogs } from "@/context/log-context";
 import { isSameDay } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import { useCommunity } from "@/context/community-context";
+import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -109,21 +111,21 @@ export default function DashboardPage() {
       description: translate('askAnyQuestion', "Ask any question"),
       icon: Bot,
       href: "/dashboard/query",
-      color: "bg-green-500 hover:bg-green-600",
+      image: PlaceHolderImages.find(p => p.id === 'ai-assistant-bg'),
     },
     {
       title: translate('plantDoctor', "Plant Doctor"),
       description: translate('diagnoseWithPhoto', "Diagnose with a photo"),
       icon: Stethoscope,
       href: "/dashboard/diagnose",
-      color: "bg-blue-500 hover:bg-blue-600",
+      image: PlaceHolderImages.find(p => p.id === 'plant-doctor-bg'),
     },
     {
       title: translate('voiceQuery', "Voice Query"),
       description: translate('askWithYourVoice', "Ask with your voice"),
       icon: Mic,
       href: "/dashboard/query",
-      color: "bg-purple-500 hover:bg-purple-600",
+      image: PlaceHolderImages.find(p => p.id === 'voice-query-bg'),
     },
   ];
   
@@ -143,15 +145,31 @@ export default function DashboardPage() {
         
         <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
              {features.map((feature) => (
-                <Card key={feature.title} className={`text-white flex items-center justify-between p-6 ${feature.color} transition-transform hover:scale-105`}>
-                    <div className="flex items-center gap-4">
-                        <feature.icon className="h-8 w-8" />
-                        <div>
-                            <CardTitle className="text-lg font-bold">{feature.title}</CardTitle>
-                            <CardDescription className="text-white/80">{feature.description}</CardDescription>
+                <Card key={feature.title} className="text-white overflow-hidden relative group">
+                    {feature.image && (
+                        <Image
+                            src={feature.image.imageUrl}
+                            alt={feature.image.description}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            data-ai-hint={feature.image.imageHint}
+                        />
+                    )}
+                    <div className="absolute inset-0 bg-black/50 group-hover:bg-black/60 transition-colors" />
+                    <div className="relative flex flex-col justify-between h-full p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <feature.icon className="h-8 w-8" />
+                                <div>
+                                    <CardTitle className="text-lg font-bold">{feature.title}</CardTitle>
+                                    <CardDescription className="text-white/80">{feature.description}</CardDescription>
+                                </div>
+                            </div>
+                            <Link href={feature.href} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <ArrowRight className="h-6 w-6" />
+                            </Link>
                         </div>
                     </div>
-                    <Link href={feature.href}><ArrowRight className="h-6 w-6" /></Link>
                 </Card>
             ))}
         </section>
@@ -164,7 +182,7 @@ export default function DashboardPage() {
                 <CardContent className="grid grid-cols-3 gap-4 text-center">
                     {quickOverview.map(item => (
                        <Link href={item.href} key={item.id}>
-                        <div className="bg-muted/50 p-4 rounded-lg flex flex-col items-center gap-2 h-full transition-colors hover:bg-muted">
+                        <div className="bg-muted/50 p-4 rounded-lg flex flex-col items-center justify-center gap-2 h-full transition-colors hover:bg-muted">
                             <div className="p-3 bg-white rounded-full text-primary">
                                 <item.icon className="h-6 w-6"/>
                             </div>
@@ -175,7 +193,7 @@ export default function DashboardPage() {
                     ))}
                 </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <Card className="bg-gradient-to-br from-primary to-green-700 text-white">
                 <CardHeader>
                     <CardTitle className="flex justify-between items-center">{translate('weatherToday', 'Weather Today')} <Cloud className="h-8 w-8"/></CardTitle>
                 </CardHeader>
@@ -193,9 +211,6 @@ export default function DashboardPage() {
                             <div className="flex justify-between text-sm text-white/80">
                                 <p className="flex items-center gap-1"><Droplets className="h-4 w-4" /> {translate('humidity', 'Humidity')}: {weather.humidity}%</p>
                                 <p className="flex items-center gap-1"><Wind className="h-4 w-4" /> {weather.wind} km/h</p>
-                            </div>
-                            <div className="bg-white/20 rounded-md p-2 text-center text-xs">
-                                {translate('lightRainTomorrow', 'Light rain expected tomorrow')}
                             </div>
                         </>
                     ) : (
@@ -286,3 +301,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
