@@ -14,6 +14,12 @@ import {z} from 'genkit';
 const LocalizedQueryResponseInputSchema = z.object({
   query: z.string().describe('The farmer\'s query in any language.'),
   location: z.string().describe('The location of the farmer (e.g., city, state).'),
+    photoDataUri: z
+    .string()
+    .optional()
+    .describe(
+      "An optional photo related to the query, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
 });
 export type LocalizedQueryResponseInput = z.infer<typeof LocalizedQueryResponseInputSchema>;
 
@@ -34,8 +40,11 @@ const prompt = ai.definePrompt({
 
   The farmer is located in: {{{location}}}
   Their query is: {{{query}}}
+  {{#if photoDataUri}}
+  They have also provided an image for context: {{media url=photoDataUri}}
+  {{/if}}
 
-  Provide a response that is relevant to their location and agricultural conditions.
+  Analyze the text and the image (if provided) to give a comprehensive and actionable response.
   Take into account the local climate, common crops, and any specific challenges faced by farmers in that region.
 `,
 });
