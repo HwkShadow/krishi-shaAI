@@ -12,9 +12,7 @@
     { "id": "balwinder-avatar", "description": "Avatar for Balwinder S.", "imageUrl": "https://picsum.photos/seed/balwinder/40", "imageHint": "person face" },
     { "id": "priya-avatar", "description": "Avatar for Priya M.", "imageUrl": "https://picsum.photos/seed/priya/40", "imageHint": "person face" },
     { "id": "ai-assistant-bg", "description": "Background for AI assistant card", "imageUrl": "https://picsum.photos/seed/ai/400/200", "imageHint": "abstract technology" },
-    { "id": "plant-doctor-bg", "description": "Background for Plant Doctor card", "imageUrl": "https://picsum.photos/seed/leaf/400/200", "imageHint": "plant leaf" },
-    { "id": "voice-query-bg", "description": "Background for Voice Query card", "imageUrl": "https://picsum.photos/seed/wave/400/200", "imageHint": "sound wave" }
+    { "id": "plant-doctor-bg", "description": "Background for Plant Doctor card", "imageUrl": "https://picsum.photos/seed/plant-leaf/400/200", "imageHint": "plant leaf" },
+    { "id": "voice-query-bg", "description": "Background for Voice Query card", "imageUrl": "https://picsum.photos/seed/soundwave/400/200", "imageHint": "sound wave" }
   ]
 }
-
-    
