@@ -63,12 +63,17 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
   const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+        setDiscussions([]);
+        return;
+    };
+
     const unsubscribe = getDiscussions((discussionsFromDb) => {
         setDiscussions(discussionsFromDb as Discussion[]);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const addDiscussion = async (data: { title: string; tag?: string }) => {
     if (!user) {

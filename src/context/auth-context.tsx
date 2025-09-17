@@ -75,33 +75,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (user?.isAdmin) {
-      const q = query(collection(db, "users"), orderBy("memberSince", "desc"));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const usersFromDb = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
-        // Merge with initial mock users for demo purposes
-        const combinedUsers = [...initialUsers];
-        usersFromDb.forEach(dbUser => {
-          const index = combinedUsers.findIndex(u => u.email === dbUser.email);
-          if (index !== -1) {
-            combinedUsers[index] = { ...combinedUsers[index], ...dbUser };
-          } else {
-            combinedUsers.push(dbUser);
-          }
-        });
-        setAllUsers(combinedUsers);
-      });
-      return () => unsubscribe();
-    } else if (user) {
-        // if not admin, just use local storage
-         const storedUsers = localStorage.getItem('appUsers');
-         const users = storedUsers ? JSON.parse(storedUsers) : initialUsers;
-         setAllUsers(users);
-    }
-  }, [user]);
-
-
   const persistUsers = (users: User[]) => {
       setAllUsers(users);
       localStorage.setItem('appUsers', JSON.stringify(users));
