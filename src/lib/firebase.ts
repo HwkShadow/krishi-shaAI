@@ -90,31 +90,4 @@ export const updateCommentInFirestore = async (discussionId: string, oldComment:
 }
 
 
-// Users Collection
-const usersCollection = collection(db, "users");
-
-export const addUserToFirestore = async (uid: string, userData: any) => {
-    const userRef = doc(db, "users", uid);
-    // Use setDoc with merge: true to avoid overwriting existing data
-    return await setDoc(userRef, userData, { merge: true });
-}
-
-export const getUserFromFirestore = async (uid: string) => {
-    const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-    if(userSnap.exists()) {
-        return { uid, ...userSnap.data() };
-    }
-    return null;
-}
-
-export const getAllUsersFromFirestore = (callback: (users: any[]) => void) => {
-    const q = query(usersCollection, orderBy("memberSince", "desc"));
-    return onSnapshot(q, (snapshot) => {
-        const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        callback(users);
-    });
-}
-
-
 export { db, auth };

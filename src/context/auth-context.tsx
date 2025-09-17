@@ -4,17 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { 
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc,
-    onSnapshot,
-    collection,
-    query,
-    orderBy
-} from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 
 
@@ -148,12 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(updatedUser);
           const updatedUsers = allUsers.map(u => u.uid === user.uid ? updatedUser : u);
           persistUsers(updatedUsers);
-
-          // Also update in Firestore for persistence across sessions for admins
-          if(updatedUser.isAdmin) {
-            const userRef = doc(db, "users", updatedUser.uid);
-            setDoc(userRef, updatedUser, { merge: true });
-          }
       }
   }
 
