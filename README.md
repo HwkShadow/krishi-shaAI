@@ -1,4 +1,4 @@
-# Firebase Studio
+# krishi shaAI
 
 This is a NextJS starter in Firebase Studio.
 
